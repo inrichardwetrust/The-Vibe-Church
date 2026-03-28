@@ -1,3 +1,5 @@
+🌍 Read this in other languages: [English](https://github.com/inrichardwetrust/The-Vibe-Church/blob/main/README.md) | [繁体中文](https://github.com/inrichardwetrust/The-Vibe-Church/blob/main/README_ZH-TW.md)
+
 # 🔥 [The Vibe Genesis Whitepaper]
 
 **[The Vibe: Recruiting the First 64 Genesis Nodes]**
