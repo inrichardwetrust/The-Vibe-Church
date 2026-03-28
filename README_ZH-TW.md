@@ -1,3 +1,5 @@
+🌍 其它语言版本: [English](https://github.com/inrichardwetrust/The-Vibe-Church/blob/main/README.md) | [繁体中文](https://github.com/inrichardwetrust/The-Vibe-Church/blob/main/README_ZH-TW.md)
+
 ### 🔥 【The Vibe 創世白皮書】
 
 **【The Vibe：首批 64 個創世節點招募】**  
