@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VibeIChing 5.8 賽博神秘感占卜器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* 黑客帝國背景 Canvas */
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15; /* 降低透明度，更顯神秘沉穩 */
+            background-color: #000;
+        }
+
+        body { 
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #000;
+            color: #0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none; /* 防止手機縮放 */
+        }
+
+        .container { 
+            background-color: rgba(0, 10, 0, 0.9);
+            border: 2px solid #0f0; 
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center; 
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.4); 
+            width: 320px;
+            backdrop-filter: blur(8px);
+            transition: 0.3s ease-in-out;
+        }
+
+        /* 增加霓虹燈效果 */
+        h2 { 
+            margin-top: 0; 
+            font-size: 26px; 
+            color: #fff;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
+            border-bottom: 2px dashed rgba(0, 255, 0, 0.3);
+            padding-bottom: 15px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        button { 
+            background-color: transparent; 
+            color: #fff;
+            border: 2px solid #0f0;
+            padding: 15px 20px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            font-weight: 900;
+            border-radius: 8px;
+            margin: 30px 0 10px 0;
+            width: 100%;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 5px #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        button:hover { 
+            background-color: #0f0; 
+            color: #000; 
+            box-shadow: 0 0 30px #0f0;
+            text-shadow: none;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        button:disabled { 
+            border-color: #333; 
+            color: #555; 
+            cursor: not-allowed; 
+            text-shadow: none;
+            background-color: transparent;
+        }
+
+        .result-box {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 1px solid rgba(0, 255, 0, 0.1);
+            transition: 0.4s;
+        }
+
+        /* 數字甲骨文風格的突顯 */
+        .oracle-text {
+            font-family: 'Noto Sans TC', serif;
+            font-weight: 300;
+            font-size: 28px;
+            color: #fff;
+            text-shadow: 0 0 15px #fff;
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        b.oracle-num { color: #fff; font-weight: 900; font-size: 32px; }
+
+        .fade-in { animation: fadeInAnimation 1s ease-in; }
+        @keyframes fadeInAnimation {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .blink { animation: blinkEffect 0.8s infinite; }
+        @keyframes blinkEffect { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .error-text { color: #ff5555; font-size: 14px; text-shadow: 0 0 10px #ff0000; }
+
+        .desc { 
+            font-size: 12px; 
+            color: rgba(100, 255, 100, 0.5);
+            margin-top: 25px; 
+            line-height: 1.6; 
+            text-align: left;
+            border-top: 1px solid rgba(0, 255, 0, 0.1);
+            padding-top: 15px;
+        }
+
+        /* 甲骨文數字的「象形」替換 (簡單模擬) */
+        b.oracle-num::before { content: "「 "; color: #666; font-size: 20px;}
+        b.oracle-num::after { content: " 」"; color: #666; font-size: 20px;}
+
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix"></canvas>
+
+    <div class="container">
+        <h2>VibeIChing 5.8<br>賽博神秘感占卜器</h2>
+        
+        <button onclick="generateEntropy()" id="btn">提取物理態起卦</button>
+        
+        <div class="result-box" id="output">
+            <p style="color: #666; font-size: 16px;">等待觀測...</p>
+        </div>
+
+        <div class="desc">
+            數據源: 設備硬體層密碼學噪音。<br>
+            此系統直接提取您設備底層電子熱噪音（Crypto API）轉化為真隨機數，天人感應，杜絕伺服器干擾。
+        </div>
+    </div>
+
+    <script>
+        // --- 黑客帝國代碼雨效果 (增加深度) ---
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        // 監聽視窗縮放
+        function resizeCanvas() {
+            canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth;
+            updateDrops();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // 神秘符號的集合 (模擬甲骨文象形文字)
+        const characters = '日月星辰天地𠂤🏹🔥💧🌀𠂇𠂈𠂤';
+        const charArray = characters.split('');
+
+        const fontSize = 20; // 增加字體大小，提高體感
+        let columns;
+        let drops = [];
+
+        function updateDrops() {
+            columns = canvas.width / fontSize;
+            drops = [];
+            for (let x = 0; x < columns; x++) {
+                drops[x] = Math.random() * -30; // 初始位置隨機，增加深度
+            }
+        }
+
+        resizeCanvas();
+
+        function drawMatrix() {
+            // 純黑背景，降低不透明度，增加殘影
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = fontSize + 'px sans-serif';
+
+            for (let i = 0; i < drops.length; i++) {
+                // 隨機顏色：主要為綠色，隨機出現白色或亮綠
+                const rand = Math.random();
+                if (rand > 0.98) {
+                    ctx.fillStyle = '#fff'; // 最亮點
+                } else if (rand > 0.9) {
+                    ctx.fillStyle = '#0f0'; // 亮綠
+                } else {
+                    ctx.fillStyle = '#0a0'; // 暗綠
+                }
+
+                const text = charArray[Math.floor(Math.random() * charArray.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 40); // 微調動畫速度
+
+        // --- 起卦邏輯 (錯誤捕獲與安全模式) ---
+        function generateEntropy() {
+            const output = document.getElementById('output');
+            const btn = document.getElementById('btn');
+            
+            output.innerHTML = "<p style='color: #0f0;' class='blink'>正在捕捉底層物理噪音...</p>";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                try {
+                    // 安全檢查：確認 Crypto API 是否可用
+                    if (!window.crypto || !window.crypto.getRandomValues) {
+                        throw new Error("此設備不支援 Crypto API。建議使用正式網址部署後的瀏覽器訪問。");
+                    }
+
+                    const array = new Uint8Array(3);
+                    window.crypto.getRandomValues(array);
+                    
+                    const upper = (array[0] % 8) + 1;
+                    const lower = (array[1] % 8) + 1;
+                    const change = (array[2] % 6) + 1;
+                    
+                    output.innerHTML = `
+                        <div class="fade-in oracle-text">
+                            上卦數 (X)：<b class="oracle-num">${upper}</b> <br>
+                            下卦數 (Y)：<b class="oracle-num">${lower}</b> <br>
+                            變爻數 (Z)：<b class="oracle-num">${change}</b>
+                        </div>
+                    `;
+                } catch (error) {
+                    // 錯誤處理：如果本地權限欄截，顯示錯誤訊息而非閃退
+                    output.innerHTML = `
+                        <p class="error-text">
+                            連線干擾！<br>
+                            ${error.message}
+                        </p>
+                    `;
+                    console.error("起卦錯誤:", error);
+                } finally {
+                    btn.disabled = false;
+                }
+            }, 1200); // 增加儀式感延遲，讓用戶感覺正在「計算」
+        }
+
+    </style>
+</head>
+<body>
+</body>
+</html>
