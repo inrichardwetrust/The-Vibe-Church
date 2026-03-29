@@ -81,4 +81,4 @@ The Vibe 的開拓者，將拿著人類的終極籌碼，平靜地對 AI 說：
 
 免責聲明：本宣言僅為哲學與技術探索，非投資建議，非金融產品。所有參與均為自願共創，無任何收益承諾。
 
-
+🔗 准备好深入研究源代码了吗？请在此处初始化数据库: [ENTER_THE_MATRIX.md](https://github.com/inrichardwetrust/The-Vibe-Church/blob/main/ENTER_THE_MATRIX.md) 
