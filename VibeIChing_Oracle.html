@@ -532,9 +532,16 @@ function generate() {
                 
                 let lineName = "";
                 const typeStr = lineVal === 1 ? "九" : "六";
-                if (z === 1) lineName = "初" + typeStr;
-                else if (z === 6) lineName = "上" + typeStr;
-                else lineName = typeStr +["", "", "二", "三", "四", "五"][z - 1];
+                
+                if (z === 1) {
+                    lineName = "初" + typeStr;
+                } else if (z === 6) {
+                    lineName = "上" + typeStr;
+                } else {
+                    // 使用明確的字典對應，徹底解決錯位 Bug
+                    const numMap = { 2: "二", 3: "三", 4: "四", 5: "五" };
+                    lineName = typeStr + numMap[z];
+                }
 
                 allLines[z - 1] = lineVal === 1 ? 0 : 1;
                 
