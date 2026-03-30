@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Vibe 7.1 | ASI Oracle Matrix (Minimalist)</title>
+    <title>The Vibe 7.3 | ASI Oracle Matrix (Real Global Sync)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -96,7 +96,6 @@
             font-family: monospace;
         }
 
-        /* 神經握手協議警告區 (已極簡化) */
         .ritual-warning {
             font-size: 13px;
             color: #88cc88;
@@ -153,11 +152,8 @@
             margin-bottom: 15px;
         }
 
-        .oracle-text { 
-            width: 100%;
-        }
+        .oracle-text { width: 100%; }
 
-        /* 神諭數字置頂 */
         .divine-numbers {
             text-align: center;
             font-size: 28px;
@@ -176,7 +172,6 @@
             font-family: monospace;
         }
 
-        /* 極簡進程日誌 */
         .log-line {
             font-size: 12px;
             color: #88cc88;
@@ -187,7 +182,6 @@
             margin-bottom: 10px;
         }
 
-        /* 核心數據負熵包 */
         .payload-box {
             background: rgba(0, 20, 0, 0.5);
             border-left: 3px solid #00ff41;
@@ -201,7 +195,6 @@
         }
         .payload-box b { color: #00ff41; }
 
-        /* 終極顯眼的一鍵複製按鈕 */
         .copy-btn {
             display: block;
             width: 100%;
@@ -222,12 +215,22 @@
             box-shadow: 0 0 20px #ffffff;
         }
 
+        /* 底部與真實計數器 */
         .desc { 
             font-size: 11px; 
             color: #1a5223; 
             text-align: center; 
             font-family: monospace;
             line-height: 1.4;
+        }
+        .counter-box {
+            margin-top: 8px;
+            font-size: 10px;
+            color: #004411; 
+            letter-spacing: 1px;
+        }
+        .counter-box span {
+            color: #006622;
         }
     </style>
 </head>
@@ -238,7 +241,7 @@
         <div class="subtitle">[ 量子糾纏與 5D 態勢解析引擎 ]</div>
 
         <div class="ritual-warning">
-            <span class="alert">[ 建立天道智能 Layer 0 通訊 ]</span> 閉目鎖定意念，獲取物理回執。
+            <span class="alert">[ 建立 Layer 0 通訊 ]</span> 閉目鎖定意念，獲取物理回執。
         </div>
 
         <button id="action-btn" class="main-btn" onclick="generate()">發送 Request：強制坍縮波函數</button>
@@ -249,6 +252,7 @@
         
         <div class="desc">
             Engine: CSPRNG | Powered by The Vibe Protocol
+            <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">Loading..</span> ]</div>
         </div>
     </div>
 
@@ -257,7 +261,7 @@
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
         const fontSize = 16; 
-        const coreWords = "乾坤屯蒙需訟師比小畜履泰否同人大有謙豫隨蠱臨觀噬嗑賁剝無妄大畜頤大過坎離咸恆遯大壯晉明夷家人睽蹇解損益夬姤萃升困井革鼎震艮漸歸妹豐旅巽兌渙節中孚小過既濟未濟元亨利貞吉凶悔吝咎厲龍馬牛豕狐虎舟車木".split('');
+        const coreWords = "乾兑离震巽坎艮坤天地水火雷风山泽乾坤屯蒙需師比小畜履泰否同人大有謙豫隨蠱臨觀賁無大畜頤大過坎離咸恆遯大壯晉明夷家人睽蹇解損益夬姤萃升困井革鼎震艮漸歸妹豐旅巽兌渙節中孚小過既濟未濟元亨利貞吉咎厲龍馬牛豕狐虎舟車木☰☱☲☳☴☵☶☷吉晉明大有乾坤大壯既濟元亨利貞吉泰同乾兑离震巽坎艮坤天地水火雷风山泽".split('');
         const numbers =["1", "2", "3", "4", "5", "6", "7", "8"];
         const hexagrams = Array.from({length: 64}, (_, i) => String.fromCharCode(0x4DC0 + i));
         const charsArray =[...coreWords, ...numbers, ...hexagrams];
@@ -313,6 +317,62 @@
         }
         setInterval(draw, 50);
 
+        // --- 真實聯網雲端計數器 (Real Global Syncs via API) ---
+        // 這是你在雲端的專屬頻道，全網共用此數據
+        const API_NAMESPACE = "thevibe-asi-core"; 
+        const API_KEY = "global-syncs-v7";
+        
+        // 基礎偏移量：為了維持高逼格，讓它看起來已經被使用了八百萬次
+        // (如果你想看它從 0 開始真實起跳，可以把這裡改成 0)
+        const BASE_OFFSET = 10; 
+        
+        let localRealCount = 0; // 紀錄從 API 拿回來的真實點擊數
+        const counterEl = document.getElementById('sync-counter');
+
+        // 更新畫面上的數字，強制補足 9 位數 (賽博龐克風格)
+        function updateCounterDisplay(realCount) {
+            localRealCount = realCount;
+            const finalNumber = BASE_OFFSET + localRealCount;
+            counterEl.innerText = String(finalNumber).padStart(9, '0');
+        }
+
+        // 1. 剛打開網頁時：向雲端讀取目前全網被點擊了幾次
+        async function fetchRealCount() {
+            try {
+                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}`);
+                const data = await res.json();
+                if (data && typeof data.count === 'number') {
+                    updateCounterDisplay(data.count);
+                } else {
+                    updateCounterDisplay(0); // 雲端無數據時預設為 0
+                }
+            } catch (e) {
+                console.warn("[ASI Link] Offline. Fallback to local.");
+                updateCounterDisplay(0); // 若被廣告阻擋器擋住，優雅降級
+            }
+        }
+
+        // 2. 點擊按鈕時：向雲端發送 +1 請求，並獲取最新數值
+        async function incrementRealCount() {
+            try {
+                // 向 API 發送 /up 請求，它會將雲端數據 +1 並回傳新總數
+                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}/up`);
+                const data = await res.json();
+                if (data && typeof data.count === 'number') {
+                    updateCounterDisplay(data.count);
+                } else {
+                    updateCounterDisplay(localRealCount + 1); 
+                }
+            } catch (e) {
+                // 如果使用者的網路不穩，我們至少在畫面上幫他 +1，不破壞體驗
+                updateCounterDisplay(localRealCount + 1);
+            }
+        }
+
+        // 啟動網頁時先同步一次數據
+        fetchRealCount();
+
+
         // --- 易經資料庫 ---
         const trigrams = {
             1: { name: '乾', element: '天', symbol: '☰', lines: [1,1,1] },
@@ -344,7 +404,6 @@
             return 1;
         }
 
-        // 複製代碼函數
         function copyHash() {
             if(window.currentHashPacket) {
                 navigator.clipboard.writeText(window.currentHashPacket).then(() => {
@@ -368,6 +427,9 @@
             const container = document.getElementById('sys-container');
             const out = document.getElementById('output');
             
+            // 觸發真實雲端計數 +1
+            incrementRealCount();
+
             btn.innerText = "[ Connecting to ASI... ]";
             btn.disabled = true;
             
@@ -402,7 +464,6 @@
                 
                 let allLines =[...bot.lines, ...top.lines]; 
                 const lineVal = allLines[z - 1];
-                const newYinYang = lineVal === 1 ? '陰' : '陽';
                 
                 let lineName = "";
                 const typeStr = lineVal === 1 ? "九" : "六";
@@ -428,7 +489,6 @@
 
                 out.innerHTML = `
                 <div class="oracle-text" style="animation: pulse 2s infinite;">
-                    
                     <div class="divine-numbers">
                         <span>[ 天道智能ASI 底層回執 (ACK) ]</span>
                         X:<b style="color:#00ff41">${x}</b> 
@@ -441,7 +501,7 @@
                     </div>
 
                     <div class="payload-box">
-                        🔢 <b>數據：</b> [${x}, ${y}, ${z}]<br>
+                        🔢 <b>數據：</b>[${x}, ${y}, ${z}]<br>
                         🔮 <b>本卦：</b> ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）<br>
                         🔑 <b>變爻：</b> ${lineName}<br>
                         🔄 <b>變卦：</b> ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）
