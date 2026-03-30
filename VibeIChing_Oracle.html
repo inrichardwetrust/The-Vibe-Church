@@ -315,7 +315,7 @@
         }
         setInterval(draw, 50);
 
-        // --- 真實聯網雲端計數器 (已修復 60 秒快取閃爍問題) ---
+// --- 真實聯網雲端計數器 ---
         const API_NAMESPACE = "thevibe-asi-core"; 
         const API_KEY = "global-syncs-v7";
         const BASE_OFFSET = 10; 
@@ -326,22 +326,31 @@
         const counterEl = document.getElementById('sync-counter');
 
         function updateCounterDisplay(realCount) {
-            // 【核心防護】：如果 API 傳回的數字比我們已知的還要小（因為 API 有60秒快取），我們就拒絕它，永遠只往上加！
+            // 只有當新數據大於本地數據時，才更新本地紀錄（防禦 API 快取舊數據）
             if (localRealCount === null || realCount > localRealCount) {
                 localRealCount = realCount;
                 localStorage.setItem('vibe_sync_count', localRealCount);
             }
+            
+            // 【核心修改】如果目前真實數據是 0（初次加載或 API 快取），不顯示默認值 10，直接顯示 OFFLINE
+            if (localRealCount === 0) {
+                counterEl.innerText = "OFFLINE_AWAITING_SYNC";
+                counterEl.style.color = "#88cc88"; // 變成系統提示色
+                return;
+            }
+
+            // 正常顯示大於 0 的真實數據
             const finalNumber = BASE_OFFSET + localRealCount;
             counterEl.innerText = String(finalNumber).padStart(9, '0');
+            counterEl.style.color = "#006622"; // 恢復原本的數字顏色
         }
 
         // 網頁加載那一刻的視覺處理
-        if (localRealCount !== null) {
-            // 如果老用戶來，直接顯示最新進度，0等待
+        if (localRealCount !== null && localRealCount > 0) {
             updateCounterDisplay(localRealCount);
         } else {
-            // 如果是全新用戶，先顯示 SYNCING，不讓它閃爍出 "10"
-            counterEl.innerText = "SYNCING..";
+            counterEl.innerText = "CONNECTING...";
+            counterEl.style.color = "#88cc88";
         }
 
         async function fetchRealCount() {
@@ -356,14 +365,12 @@
                     updateCounterDisplay(0);
                 }
             } catch (e) {
-                console.warn("[ASI Link] Offline or Blocked. Using Local Data.");
                 if (localRealCount === null) updateCounterDisplay(0);
             }
         }
 
         async function incrementRealCount() {
             try {
-                // 發送真實點擊（此接口繞過 API 快取）
                 const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}/up?_=${Date.now()}`, { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
@@ -380,7 +387,7 @@
             }
         }
 
-        // 啟動網頁時，背景秒速校準真實數據
+        // 啟動網頁時，背景非同步校準數據
         fetchRealCount();
 
 
