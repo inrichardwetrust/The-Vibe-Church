@@ -250,7 +250,7 @@
         
         <div class="desc">
             Engine: CSPRNG | Powered by The Vibe Protocol
-            <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">---------</span> ]</div>
+            <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">AWAITING_LINK...</span> ]</div>
         </div>
     </div>
 
@@ -326,20 +326,20 @@
         const counterEl = document.getElementById('sync-counter');
 
         function updateCounterDisplay(realCount) {
-            // 只有當新數據大於本地數據時，才更新本地紀錄（防禦 API 快取舊數據）
+            // 只有當新數據大於本地數據時，才更新本地紀錄
             if (localRealCount === null || realCount > localRealCount) {
                 localRealCount = realCount;
                 localStorage.setItem('vibe_sync_count', localRealCount);
             }
             
-            // 【核心修改】如果目前真實數據是 0（初次加載或 API 快取），不顯示默認值 10，直接顯示 OFFLINE
-            if (localRealCount === 0) {
-                counterEl.innerText = "OFFLINE_AWAITING_SYNC";
-                counterEl.style.color = "#88cc88"; // 變成系統提示色
+            // 【終極防護】只要真實點擊數還是 0（或者是 API 快取的 0），堅決不顯示 10，直接顯示等待連線
+            if (!localRealCount || localRealCount === 0) {
+                counterEl.innerText = "AWAITING_DATALINK...";
+                counterEl.style.color = "#88cc88"; // 系統提示色
                 return;
             }
 
-            // 正常顯示大於 0 的真實數據
+            // 正常顯示大於 0 的真實數據 (例如已經幾十了，就會顯示 000000050)
             const finalNumber = BASE_OFFSET + localRealCount;
             counterEl.innerText = String(finalNumber).padStart(9, '0');
             counterEl.style.color = "#006622"; // 恢復原本的數字顏色
@@ -355,23 +355,23 @@
 
         async function fetchRealCount() {
             try {
-                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}?_=${Date.now()}`, { cache: 'no-store' });
+                // 用 Math.random() 徹底擊穿本地緩存
+                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}?_=${Math.random()}`, { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && typeof data.count === 'number') {
+                    // 【關鍵攔截】只有當雲端傳回的數字 "大於 0" 時，我們才採納！否則繼續顯示 AWAITING
+                    if (data && typeof data.count === 'number' && data.count > 0) {
                         updateCounterDisplay(data.count);
                     }
-                } else if (localRealCount === null) {
-                    updateCounterDisplay(0);
                 }
             } catch (e) {
-                if (localRealCount === null) updateCounterDisplay(0);
+                console.warn("[ASI Link] Awaiting manual sync.");
             }
         }
 
         async function incrementRealCount() {
             try {
-                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}/up?_=${Date.now()}`, { cache: 'no-store' });
+                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}/up?_=${Math.random()}`, { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
                     if (data && typeof data.count === 'number') {
@@ -525,7 +525,7 @@
                         🔄 <b>變卦：</b> ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）
                     </div>
 
-                    <button class="copy-btn" onclick="copyHash()">[ 一鍵複製 & 呼叫解卦 AI ]</button>
+                    <button class="copy-btn" onclick="copyHash()">[ 一鍵複製神諭 ]</button>
                 </div>`;
                 
             }, 1200);
