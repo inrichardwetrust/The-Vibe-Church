@@ -44,7 +44,6 @@
             flex-direction: column;
         }
 
-        /* 經典像素撕裂 */
         .glitch-pixel-active {
             animation: container-jitter 0.2s steps(5) infinite;
         }
@@ -215,7 +214,6 @@
             box-shadow: 0 0 20px #ffffff;
         }
 
-        /* 底部與真實計數器 */
         .desc { 
             font-size: 11px; 
             color: #1a5223; 
@@ -252,7 +250,7 @@
         
         <div class="desc">
             Engine: CSPRNG | Powered by The Vibe Protocol
-            <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">000000010</span> ]</div>
+            <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">---------</span> ]</div>
         </div>
     </div>
 
@@ -317,61 +315,72 @@
         }
         setInterval(draw, 50);
 
-        // --- 真實聯網雲端計數器 (優化緩存穿透版) ---
+        // --- 真實聯網雲端計數器 (已修復 60 秒快取閃爍問題) ---
         const API_NAMESPACE = "thevibe-asi-core"; 
         const API_KEY = "global-syncs-v7";
         const BASE_OFFSET = 10; 
         
-        // 【修復】讀取本地記憶，避免畫面閃爍或回到預設值
-        let localRealCount = parseInt(localStorage.getItem('vibe_sync_count')) || 0; 
+        // 讀取本地快取紀錄
+        let savedCount = localStorage.getItem('vibe_sync_count');
+        let localRealCount = (savedCount !== null && !isNaN(parseInt(savedCount))) ? parseInt(savedCount) : null; 
         const counterEl = document.getElementById('sync-counter');
 
         function updateCounterDisplay(realCount) {
-            localRealCount = realCount;
-            // 將最新數據存入瀏覽器，下次刷新直接顯示
-            localStorage.setItem('vibe_sync_count', realCount);
+            // 【核心防護】：如果 API 傳回的數字比我們已知的還要小（因為 API 有60秒快取），我們就拒絕它，永遠只往上加！
+            if (localRealCount === null || realCount > localRealCount) {
+                localRealCount = realCount;
+                localStorage.setItem('vibe_sync_count', localRealCount);
+            }
             const finalNumber = BASE_OFFSET + localRealCount;
             counterEl.innerText = String(finalNumber).padStart(9, '0');
         }
 
-        // 初始化：一打開網頁先顯示記憶中的數字
-        updateCounterDisplay(localRealCount);
+        // 網頁加載那一刻的視覺處理
+        if (localRealCount !== null) {
+            // 如果老用戶來，直接顯示最新進度，0等待
+            updateCounterDisplay(localRealCount);
+        } else {
+            // 如果是全新用戶，先顯示 SYNCING，不讓它閃爍出 "10"
+            counterEl.innerText = "SYNCING..";
+        }
 
         async function fetchRealCount() {
             try {
-                // 【修復】加上 ?_=${Date.now()} 強制擊穿瀏覽器緩存，確保拿到最新雲端數據
                 const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}?_=${Date.now()}`, { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
                     if (data && typeof data.count === 'number') {
                         updateCounterDisplay(data.count);
                     }
+                } else if (localRealCount === null) {
+                    updateCounterDisplay(0);
                 }
             } catch (e) {
                 console.warn("[ASI Link] Offline or Blocked. Using Local Data.");
+                if (localRealCount === null) updateCounterDisplay(0);
             }
         }
 
         async function incrementRealCount() {
             try {
-                // 發送更新請求也加上緩存擊穿
+                // 發送真實點擊（此接口繞過 API 快取）
                 const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}/up?_=${Date.now()}`, { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
                     if (data && typeof data.count === 'number') {
                         updateCounterDisplay(data.count);
                     } else {
-                        updateCounterDisplay(localRealCount + 1); 
+                        updateCounterDisplay((localRealCount || 0) + 1); 
                     }
                 } else {
-                    updateCounterDisplay(localRealCount + 1); 
+                    updateCounterDisplay((localRealCount || 0) + 1); 
                 }
             } catch (e) {
-                updateCounterDisplay(localRealCount + 1);
+                updateCounterDisplay((localRealCount || 0) + 1);
             }
         }
 
-        // 啟動網頁時，背景非同步校準數據
+        // 啟動網頁時，背景秒速校準真實數據
         fetchRealCount();
 
 
