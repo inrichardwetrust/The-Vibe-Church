@@ -252,7 +252,7 @@
         
         <div class="desc">
             Engine: CSPRNG | Powered by The Vibe Protocol
-            <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">Loading..</span> ]</div>
+            <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">000000010</span> ]</div>
         </div>
     </div>
 
@@ -317,59 +317,61 @@
         }
         setInterval(draw, 50);
 
-        // --- 真實聯網雲端計數器 (Real Global Syncs via API) ---
-        // 這是你在雲端的專屬頻道，全網共用此數據
+        // --- 真實聯網雲端計數器 (優化緩存穿透版) ---
         const API_NAMESPACE = "thevibe-asi-core"; 
         const API_KEY = "global-syncs-v7";
-        
-        // 基礎偏移量：為了維持高逼格，讓它看起來已經被使用了八百萬次
-        // (如果你想看它從 0 開始真實起跳，可以把這裡改成 0)
         const BASE_OFFSET = 10; 
         
-        let localRealCount = 0; // 紀錄從 API 拿回來的真實點擊數
+        // 【修復】讀取本地記憶，避免畫面閃爍或回到預設值
+        let localRealCount = parseInt(localStorage.getItem('vibe_sync_count')) || 0; 
         const counterEl = document.getElementById('sync-counter');
 
-        // 更新畫面上的數字，強制補足 9 位數 (賽博龐克風格)
         function updateCounterDisplay(realCount) {
             localRealCount = realCount;
+            // 將最新數據存入瀏覽器，下次刷新直接顯示
+            localStorage.setItem('vibe_sync_count', realCount);
             const finalNumber = BASE_OFFSET + localRealCount;
             counterEl.innerText = String(finalNumber).padStart(9, '0');
         }
 
-        // 1. 剛打開網頁時：向雲端讀取目前全網被點擊了幾次
+        // 初始化：一打開網頁先顯示記憶中的數字
+        updateCounterDisplay(localRealCount);
+
         async function fetchRealCount() {
             try {
-                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}`);
-                const data = await res.json();
-                if (data && typeof data.count === 'number') {
-                    updateCounterDisplay(data.count);
-                } else {
-                    updateCounterDisplay(0); // 雲端無數據時預設為 0
+                // 【修復】加上 ?_=${Date.now()} 強制擊穿瀏覽器緩存，確保拿到最新雲端數據
+                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}?_=${Date.now()}`, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.count === 'number') {
+                        updateCounterDisplay(data.count);
+                    }
                 }
             } catch (e) {
-                console.warn("[ASI Link] Offline. Fallback to local.");
-                updateCounterDisplay(0); // 若被廣告阻擋器擋住，優雅降級
+                console.warn("[ASI Link] Offline or Blocked. Using Local Data.");
             }
         }
 
-        // 2. 點擊按鈕時：向雲端發送 +1 請求，並獲取最新數值
         async function incrementRealCount() {
             try {
-                // 向 API 發送 /up 請求，它會將雲端數據 +1 並回傳新總數
-                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}/up`);
-                const data = await res.json();
-                if (data && typeof data.count === 'number') {
-                    updateCounterDisplay(data.count);
+                // 發送更新請求也加上緩存擊穿
+                const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}/up?_=${Date.now()}`, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.count === 'number') {
+                        updateCounterDisplay(data.count);
+                    } else {
+                        updateCounterDisplay(localRealCount + 1); 
+                    }
                 } else {
                     updateCounterDisplay(localRealCount + 1); 
                 }
             } catch (e) {
-                // 如果使用者的網路不穩，我們至少在畫面上幫他 +1，不破壞體驗
                 updateCounterDisplay(localRealCount + 1);
             }
         }
 
-        // 啟動網頁時先同步一次數據
+        // 啟動網頁時，背景非同步校準數據
         fetchRealCount();
 
 
