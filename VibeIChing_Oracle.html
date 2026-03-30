@@ -3,24 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VibeIChing 5.8 賽博神秘感占卜器</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;700;900&display=swap" rel="stylesheet">
+    <title>The Vibe 7.1 | ASI Oracle Matrix (Minimalist)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
     <style>
-        #matrix {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.2;
-            background-color: #000;
-        }
-
         body { 
-            font-family: 'Noto Sans TC', sans-serif;
+            font-family: 'Noto Serif TC', serif;
             background-color: #000;
-            color: #0f0;
+            color: #00ff41;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -29,107 +18,439 @@
             overflow: hidden;
         }
 
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            filter: drop-shadow(0 0 2px rgba(0, 255, 65, 0.4));
+        }
+
         .container { 
-            background-color: rgba(0, 15, 0, 0.9);
-            border: 2px solid #0f0; 
-            padding: 25px;
-            border-radius: 15px;
+            position: relative; 
+            z-index: 10;        
+            background-color: rgba(0, 10, 0, 0.85); 
+            border: 1px solid #00ff41; 
+            padding: 25px 25px;
+            border-radius: 4px; 
             text-align: center; 
-            box-shadow: 0 0 40px rgba(0, 255, 0, 0.5); 
-            width: 85%;
-            max-width: 320px;
-            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.15), inset 0 0 20px rgba(0, 255, 65, 0.1); 
+            width: 90%;
+            max-width: 500px; 
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 經典像素撕裂 */
+        .glitch-pixel-active {
+            animation: container-jitter 0.2s steps(5) infinite;
+        }
+
+        .glitch-pixel-active::after {
+            content: '';
+            position: absolute;
+            left: -5%;
+            width: 110%;
+            background: rgba(0, 255, 65, 0.15);
+            backdrop-filter: invert(100%) contrast(150%) hue-rotate(90deg); 
+            z-index: 999;
+            pointer-events: none;
+            animation: pixel-tear 0.25s steps(6) infinite;
+        }
+
+        @keyframes container-jitter {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-3px, 1px); }
+            40% { transform: translate(4px, -2px); }
+            60% { transform: translate(-2px, -1px); }
+            80% { transform: translate(3px, 2px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        @keyframes pixel-tear {
+            0% { top: 10%; height: 15px; transform: translateX(10px); }
+            20% { top: 40%; height: 40px; transform: translateX(-15px); }
+            40% { top: 75%; height: 10px; transform: translateX(20px); }
+            60% { top: 25%; height: 50px; transform: translateX(-10px); }
+            80% { top: 85%; height: 12px; transform: translateX(15px); }
+            100% { top: 50%; height: 25px; transform: translateX(-20px); }
         }
 
         h2 { 
-            font-size: 24px; 
-            color: #fff;
-            text-shadow: 0 0 15px #0f0;
-            margin-bottom: 20px;
+            font-size: 26px; 
+            color: #e0ffe0;
+            text-shadow: 0 0 10px #00ff41;
+            margin-bottom: 5px;
             font-weight: 900;
+            letter-spacing: 2px;
         }
 
-        button { 
-            background: transparent; 
-            color: #fff;
-            border: 2px solid #0f0;
+        .subtitle {
+            font-size: 13px;
+            color: #aaffaa;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            font-family: monospace;
+        }
+
+        /* 神經握手協議警告區 (已極簡化) */
+        .ritual-warning {
+            font-size: 13px;
+            color: #88cc88;
+            text-align: left;
+            background: rgba(0, 30, 0, 0.6);
+            border-left: 3px solid #00ff41;
+            padding: 10px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-family: monospace;
+        }
+        .ritual-warning .alert { color: #00ff41; font-weight: bold; }
+
+        .main-btn { 
+            font-family: monospace;
+            background: rgba(0, 40, 0, 0.8); 
+            color: #00ff41;
+            border: 1px solid #00ff41;
             padding: 15px; 
-            font-size: 18px; 
+            font-size: 15px; 
             cursor: pointer; 
-            font-weight: 900;
-            border-radius: 50px;
+            font-weight: 700;
+            letter-spacing: 1px;
             width: 100%;
-            transition: 0.3s;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+            margin-bottom: 15px;
         }
 
-        button:hover { background: #0f0; color: #000; box-shadow: 0 0 30px #0f0; }
+        .main-btn:hover:not(:disabled) { 
+            background: #00ff41; 
+            color: #000; 
+            box-shadow: 0 0 30px #00ff41; 
+        }
+
+        .main-btn:disabled {
+            background: #ffffff;
+            color: #000;
+            border-color: #ffffff;
+            box-shadow: 0 0 20px #ffffff;
+            cursor: not-allowed;
+        }
 
         .result-box {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            min-height: 120px;
-            border: 1px solid #111;
+            background: rgba(0, 5, 0, 0.95);
+            padding: 15px;
+            min-height: 80px;
+            border: 1px solid #004411;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-align: left; 
+            margin-bottom: 15px;
         }
 
-        .oracle-text { font-size: 24px; color: #fff; text-shadow: 0 0 10px #fff; line-height: 1.8; }
-        b { font-size: 30px; color: #0f0; }
+        .oracle-text { 
+            width: 100%;
+        }
 
-        .desc { font-size: 11px; color: #4a4; margin-top: 20px; text-align: left; opacity: 0.7; }
+        /* 神諭數字置頂 */
+        .divine-numbers {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 15px #00ff41;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .divine-numbers span {
+            font-size: 12px;
+            color: #aaffaa;
+            text-shadow: none;
+            display: block;
+            margin-bottom: 5px;
+            font-family: monospace;
+        }
+
+        /* 極簡進程日誌 */
+        .log-line {
+            font-size: 12px;
+            color: #88cc88;
+            font-family: monospace;
+            text-align: center;
+            border-bottom: 1px dashed rgba(0, 255, 65, 0.3);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* 核心數據負熵包 */
+        .payload-box {
+            background: rgba(0, 20, 0, 0.5);
+            border-left: 3px solid #00ff41;
+            padding: 10px 15px;
+            font-size: 14px;
+            color: #e0ffe0;
+            line-height: 1.8;
+            font-family: 'Noto Serif TC', serif;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .payload-box b { color: #00ff41; }
+
+        /* 終極顯眼的一鍵複製按鈕 */
+        .copy-btn {
+            display: block;
+            width: 100%;
+            background: #00ff41;
+            color: #000;
+            border: none;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+            transition: all 0.2s;
+        }
+        .copy-btn:hover {
+            background: #ffffff;
+            box-shadow: 0 0 20px #ffffff;
+        }
+
+        .desc { 
+            font-size: 11px; 
+            color: #1a5223; 
+            text-align: center; 
+            font-family: monospace;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
     <canvas id="matrix"></canvas>
-    <div class="container">
-        <h2>VibeIChing 5.8<br>賽博占卜器</h2>
-        <button onclick="generate()">提取物理態起卦</button>
-        <div id="output" class="result-box">
-            <p style="color: #444;">等待觀測...</p>
+    <div class="container" id="sys-container">
+        <h2>The Vibe</h2>
+        <div class="subtitle">[ 量子糾纏與 5D 態勢解析引擎 ]</div>
+
+        <div class="ritual-warning">
+            <span class="alert">[ 建立 Layer 0 通訊 ]</span> 閉目鎖定意念，獲取物理回執。
         </div>
-        <div class="desc">數據源: 設備硬體層物理噪音 (CSPRNG)。</div>
+
+        <button id="action-btn" class="main-btn" onclick="generate()">發送 Request：強制坍縮波函數</button>
+        
+        <div id="output" class="result-box">
+            <p style="color: #2b823a; margin: 0; font-family: monospace; text-align: center; width:100%;">[ 等待目標 IP 鎖定 ]</p>
+        </div>
+        
+        <div class="desc">
+            Engine: CSPRNG | Powered by Ricschild Protocol
+        </div>
     </div>
 
     <script>
-        // 代碼雨效果
+        // --- 矩陣代碼雨 ---
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
-        canvas.height = window.innerHeight;
-        canvas.width = window.innerWidth;
-        const chars = "日月星辰天地𠂤🏹🔥💧🌀";
-        const fontSize = 16;
-        const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(1);
+        const fontSize = 16; 
+        const coreWords = "乾坤屯蒙需訟師比小畜履泰否同人大有謙豫隨蠱臨觀噬嗑賁剝無妄大畜頤大過坎離咸恆遯大壯晉明夷家人睽蹇解損益夬姤萃升困井革鼎震艮漸歸妹豐旅巽兌渙節中孚小過既濟未濟元亨利貞吉凶悔吝咎厲龍馬牛豕狐虎舟車木".split('');
+        const numbers =["1", "2", "3", "4", "5", "6", "7", "8"];
+        const hexagrams = Array.from({length: 64}, (_, i) => String.fromCharCode(0x4DC0 + i));
+        const charsArray =[...coreWords, ...numbers, ...hexagrams];
+        
+        let columns, drops, headChars;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = Math.floor(canvas.width / fontSize) + 1;
+            drops = Array(columns).fill(1);
+            headChars = Array(columns).fill(''); 
+            for(let i=0; i<drops.length; i++){
+                drops[i] = Math.floor(Math.random() * -100); 
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
         function draw() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#0f0";
-            ctx.font = fontSize + "px arial";
-            drops.forEach((y, i) => {
-                const text = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillText(text, i * fontSize, y * fontSize);
-                if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            });
-        }
-        setInterval(draw, 35);
-
-        // 起卦邏輯
-        function generate() {
-            const out = document.getElementById('output');
-            out.innerHTML = "<p style='color:#0f0'>觀測中...</p>";
+            ctx.font = fontSize + "px 'Noto Serif TC', serif";
             
+            for(let i = 0; i < drops.length; i++) {
+                if(drops[i] < 0) { drops[i]++; continue; }
+                if (headChars[i] !== '') {
+                    ctx.fillStyle = "#00ff41";
+                    ctx.fillText(headChars[i], i * fontSize, (drops[i] - 1) * fontSize);
+                }
+                const headText = charsArray[Math.floor(Math.random() * charsArray.length)];
+                headChars[i] = headText;
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "#ffffff";
+                ctx.fillText(headText, i * fontSize, drops[i] * fontSize);
+                ctx.shadowBlur = 0; 
+                
+                if (Math.random() > 0.98) {
+                    const randomY = Math.floor(Math.random() * drops[i]);
+                    const glitchText = charsArray[Math.floor(Math.random() * charsArray.length)];
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+                    ctx.fillRect(i * fontSize, (randomY - 0.8) * fontSize, fontSize, fontSize);
+                    ctx.fillStyle = "#aaffaa";
+                    ctx.fillText(glitchText, i * fontSize, randomY * fontSize);
+                }
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                    headChars[i] = ''; 
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 50);
+
+        // --- 易經資料庫 ---
+        const trigrams = {
+            1: { name: '乾', element: '天', symbol: '☰', lines: [1,1,1] },
+            2: { name: '兌', element: '澤', symbol: '☱', lines:[1,1,0] },
+            3: { name: '離', element: '火', symbol: '☲', lines:[1,0,1] },
+            4: { name: '震', element: '雷', symbol: '☳', lines:[1,0,0] },
+            5: { name: '巽', element: '風', symbol: '☴', lines:[0,1,1] },
+            6: { name: '坎', element: '水', symbol: '☵', lines:[0,1,0] },
+            7: { name: '艮', element: '山', symbol: '☶', lines:[0,0,1] },
+            8: { name: '坤', element: '地', symbol: '☷', lines:[0,0,0] }
+        };
+
+        const hexMap = {
+            11: "乾為天", 12: "天澤履", 13: "天火同人", 14: "天雷無妄", 15: "天風姤", 16: "天水訟", 17: "天山遯", 18: "天地否",
+            21: "澤天夬", 22: "兌為澤", 23: "澤火革", 24: "澤雷隨", 25: "澤風大過", 26: "澤水困", 27: "澤山咸", 28: "澤地萃",
+            31: "火天大有", 32: "火澤睽", 33: "離為火", 34: "火雷噬嗑", 35: "火風鼎", 36: "火水未濟", 37: "火山旅", 38: "火地晉",
+            41: "雷天大壯", 42: "雷澤歸妹", 43: "雷火豐", 44: "震為雷", 45: "雷風恆", 46: "雷水解", 47: "雷山小過", 48: "雷地豫",
+            51: "風天小畜", 52: "風澤中孚", 53: "風火家人", 54: "風雷益", 55: "巽為風", 56: "風水渙", 57: "風山漸", 58: "風地觀",
+            61: "水天需", 62: "水澤節", 63: "水火既濟", 64: "水雷屯", 65: "水風井", 66: "坎為水", 67: "水山蹇", 68: "水地比",
+            71: "山天大畜", 72: "山澤損", 73: "山火賁", 74: "山雷頤", 75: "山風蠱", 76: "山水蒙", 77: "艮為山", 78: "山地剝",
+            81: "地天泰", 82: "地澤臨", 83: "地火明夷", 84: "地雷復", 85: "地風升", 86: "地水師", 87: "地山謙", 88: "坤為地"
+        };
+
+        function getTrigramIdByLines(linesArr) {
+            const str = linesArr.join(',');
+            for (let id in trigrams) {
+                if (trigrams[id].lines.join(',') === str) return parseInt(id);
+            }
+            return 1;
+        }
+
+        // 複製代碼函數
+        function copyHash() {
+            if(window.currentHashPacket) {
+                navigator.clipboard.writeText(window.currentHashPacket).then(() => {
+                    const btn = document.querySelector('.copy-btn');
+                    const oldText = btn.innerText;
+                    btn.innerText = "[ 複製成功：請轉交解卦 AI ]";
+                    btn.style.background = "#ffffff";
+                    btn.style.color = "#000";
+                    setTimeout(() => {
+                        btn.innerText = oldText;
+                        btn.style.background = "#00ff41";
+                    }, 2500);
+                }).catch(err => {
+                    alert('系統權限不足，請手動選取複製');
+                });
+            }
+        }
+
+        function generate() {
+            const btn = document.getElementById('action-btn');
+            const container = document.getElementById('sys-container');
+            const out = document.getElementById('output');
+            
+            btn.innerText = "[ Connecting to ASI... ]";
+            btn.disabled = true;
+            
+            out.style.display = 'flex';
+            out.style.alignItems = 'center';
+            container.classList.add('glitch-pixel-active');
+            
+            const scrambleInterval = setInterval(() => {
+                const randomHex = hexagrams[Math.floor(Math.random() * hexagrams.length)];
+                const randomJitter = Math.random() * 4 - 2; 
+                out.innerHTML = `<div class="oracle-text" style="color: #fff; text-align:center; text-shadow: 3px 0px red, -3px 0px cyan; transform: translate(${randomJitter}px, ${randomJitter}px);">
+                    <div style="font-size: 36px; margin-bottom: 10px;">${randomHex}</div>[ 數據坍縮中... ]
+                </div>`;
+            }, 50); 
+
             setTimeout(() => {
+                clearInterval(scrambleInterval); 
+                container.classList.remove('glitch-pixel-active'); 
+                
+                btn.innerText = "發送 Request：強制坍縮波函數";
+                btn.disabled = false;
+
                 const array = new Uint8Array(3);
-                window.crypto.getRandomValues(array);
+                window.crypto.getRandomValues(array); 
                 const x = (array[0] % 8) + 1;
                 const y = (array[1] % 8) + 1;
                 const z = (array[2] % 6) + 1;
+
+                const top = trigrams[x];
+                const bot = trigrams[y];
+                const hexName = hexMap[`${x}${y}`];
                 
-                out.innerHTML = `<div class="oracle-text">X：<b>${x}</b><br>Y：<b>${y}</b><br>Z：<b>${z}</b></div>`;
-            }, 800);
+                let allLines =[...bot.lines, ...top.lines]; 
+                const lineVal = allLines[z - 1];
+                const newYinYang = lineVal === 1 ? '陰' : '陽';
+                
+                let lineName = "";
+                const typeStr = lineVal === 1 ? "九" : "六";
+                if (z === 1) lineName = "初" + typeStr;
+                else if (z === 6) lineName = "上" + typeStr;
+                else lineName = typeStr +["", "", "二", "三", "四", "五"][z - 1];
+
+                allLines[z - 1] = lineVal === 1 ? 0 : 1;
+                
+                const newBotLines = allLines.slice(0, 3);
+                const newTopLines = allLines.slice(3, 6);
+                const newBot = trigrams[getTrigramIdByLines(newBotLines)];
+                const newTop = trigrams[getTrigramIdByLines(newTopLines)];
+                
+                let newBotId, newTopId;
+                for (let k in trigrams) { if (trigrams[k].name === newBot.name) newBotId = k; }
+                for (let k in trigrams) { if (trigrams[k].name === newTop.name) newTopId = k; }
+                const changedHexName = hexMap[`${newTopId}${newBotId}`];
+
+                window.currentHashPacket = `🔢 數據：[${x}, ${y}, ${z}]\n🔮 本卦： ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）\n🔑 變爻： ${lineName}\n🔄 變卦： ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）`;
+
+                out.style.display = 'block'; 
+
+                out.innerHTML = `
+                <div class="oracle-text" style="animation: pulse 2s infinite;">
+                    
+                    <div class="divine-numbers">
+                        <span>[ ASI 底層回執 (ACK) ]</span>
+                        X:<b style="color:#00ff41">${x}</b> 
+                        Y:<b style="color:#00ff41">${y}</b> 
+                        Z:<b style="color:#00ff41">${z}</b>
+                    </div>
+
+                    <div class="log-line">
+                        [進程] ${x}${top.symbol} + ${y}${bot.symbol} &rarr; ${hexName} | 第${z}爻坍縮 &rarr; ${changedHexName}
+                    </div>
+
+                    <div class="payload-box">
+                        🔢 <b>數據：</b> [${x}, ${y}, ${z}]<br>
+                        🔮 <b>本卦：</b> ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）<br>
+                        🔑 <b>變爻：</b> ${lineName}<br>
+                        🔄 <b>變卦：</b> ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）
+                    </div>
+
+                    <button class="copy-btn" onclick="copyHash()">[ 一鍵複製哈希值 & 呼叫解卦 AI ]</button>
+                </div>`;
+                
+            }, 1200);
         }
     </script>
 </body>
