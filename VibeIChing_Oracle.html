@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Vibe 7.3 | ASI Oracle Matrix (Real Global Sync)</title>
+    <!-- 恢復為原來的 Noto Serif 字體 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -13,7 +14,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             overflow: hidden;
         }
@@ -39,15 +40,17 @@
             box-shadow: 0 0 50px rgba(0, 255, 65, 0.15), inset 0 0 20px rgba(0, 255, 65, 0.1); 
             width: 90%;
             max-width: 500px; 
+            max-height: 95vh;
+            overflow-y: auto;
             backdrop-filter: blur(12px);
             display: flex;
             flex-direction: column;
         }
 
-        .glitch-pixel-active {
-            animation: container-jitter 0.2s steps(5) infinite;
-        }
+        .container::-webkit-scrollbar { width: 4px; }
+        .container::-webkit-scrollbar-thumb { background: #00ff41; }
 
+        .glitch-pixel-active { animation: container-jitter 0.2s steps(5) infinite; }
         .glitch-pixel-active::after {
             content: '';
             position: absolute;
@@ -108,6 +111,30 @@
         }
         .ritual-warning .alert { color: #00ff41; font-weight: bold; }
 
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .vibe-input {
+            background: rgba(0, 20, 0, 0.8);
+            border: 1px solid #005511;
+            color: #00ff41;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 14px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .vibe-input:focus {
+            outline: none;
+            border-color: #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+            background: rgba(0, 40, 0, 0.9);
+        }
+        .vibe-input::placeholder { color: #005511; }
+
         .main-btn { 
             font-family: monospace;
             background: rgba(0, 40, 0, 0.8); 
@@ -123,13 +150,11 @@
             box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
             margin-bottom: 15px;
         }
-
         .main-btn:hover:not(:disabled) { 
             background: #00ff41; 
             color: #000; 
             box-shadow: 0 0 30px #00ff41; 
         }
-
         .main-btn:disabled {
             background: #ffffff;
             color: #000;
@@ -194,174 +219,247 @@
         }
         .payload-box b { color: #00ff41; }
 
+        .btn-group { display: flex; gap: 10px; width: 100%; }
         .copy-btn {
-            display: block;
-            width: 100%;
-            background: #00ff41;
-            color: #000;
-            border: none;
-            padding: 12px;
+            flex: 1;
+            background: rgba(0, 40, 0, 0.8);
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 12px 5px;
             font-family: monospace;
-            font-size: 15px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
             transition: all 0.2s;
         }
-        .copy-btn:hover {
-            background: #ffffff;
-            box-shadow: 0 0 20px #ffffff;
-        }
+        .copy-btn:hover { background: #00ff41; color: #000; box-shadow: 0 0 15px #00ff41; }
+        .copy-btn.ai-btn { background: #00ff41; color: #000; }
+        .copy-btn.ai-btn:hover { background: #ffffff; border-color: #ffffff; box-shadow: 0 0 20px #ffffff; }
 
-        .desc { 
-            font-size: 11px; 
-            color: #1a5223; 
-            text-align: center; 
-            font-family: monospace;
-            line-height: 1.4;
-        }
-        .counter-box {
-            margin-top: 8px;
-            font-size: 10px;
-            color: #004411; 
-            letter-spacing: 1px;
-        }
+        .desc { font-size: 11px; color: #1a5223; text-align: center; font-family: monospace; line-height: 1.4; }
+        .counter-box { margin-top: 8px; font-size: 10px; color: #004411; letter-spacing: 1px; }
+        .counter-box span { color: #006622; }
         .vibe-slogan {
-            font-size: 11px;
-            color: #2b823a; 
-            font-family: monospace;
-            font-style: italic;
-            text-align: center;
-            margin-bottom: 12px;
-            opacity: 0; 
-            transform: translateY(5px);
-            transition: all 2s ease; 
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px rgba(0, 255, 65, 0.1);
+            font-size: 11px; color: #2b823a; font-family: monospace; font-style: italic;
+            text-align: center; margin-bottom: 12px; opacity: 0; transform: translateY(5px);
+            transition: all 2s ease; letter-spacing: 1px; text-shadow: 0 0 5px rgba(0, 255, 65, 0.1);
         }
-        .vibe-slogan.show {
-            opacity: 1; 
-            transform: translateY(0);
-        }
-        .counter-box span {
-            color: #006622;
-        }
+        .vibe-slogan.show { opacity: 1; transform: translateY(0); }
 
-        /* --- 新增：協議彈窗樣式 --- */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 5, 0, 0.9);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 5, 0, 0.9); backdrop-filter: blur(5px); z-index: 1000;
+            display: flex; justify-content: center; align-items: center; opacity: 0;
+            visibility: hidden; transition: all 0.3s ease;
         }
-        .modal-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
         .modal-content {
-            background: rgba(0, 15, 0, 0.95);
-            border: 1px solid #00ff41;
+            background: rgba(0, 15, 0, 0.95); border: 1px solid #00ff41;
             box-shadow: 0 0 40px rgba(0, 255, 65, 0.15), inset 0 0 15px rgba(0, 255, 65, 0.1);
-            width: 90%;
-            max-width: 550px;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 25px;
-            color: #e0ffe0;
-            font-family: 'Noto Serif TC', serif;
-            border-radius: 4px;
-            position: relative;
+            width: 90%; max-width: 550px; max-height: 85vh; overflow-y: auto;
+            padding: 25px; color: #e0ffe0; font-family: 'Noto Serif TC', serif; border-radius: 4px; position: relative;
         }
-        .modal-content::-webkit-scrollbar {
-            width: 4px;
-        }
-        .modal-content::-webkit-scrollbar-thumb {
-            background: #00ff41;
-            border-radius: 2px;
-        }
+        .modal-content::-webkit-scrollbar { width: 4px; }
+        .modal-content::-webkit-scrollbar-thumb { background: #00ff41; border-radius: 2px; }
         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px dashed rgba(0, 255, 65, 0.5);
-            padding-bottom: 15px;
-            margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px dashed rgba(0, 255, 65, 0.5); padding-bottom: 15px; margin-bottom: 15px;
         }
-        .modal-header h3 {
-            margin: 0;
-            font-size: 16px;
-            color: #00ff41;
-            font-family: monospace;
-            letter-spacing: 1px;
-        }
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: #00ff41;
-            font-size: 28px;
-            cursor: pointer;
-            transition: color 0.2s, transform 0.2s;
-            line-height: 1;
-        }
-        .close-btn:hover {
-            color: #fff;
-            transform: scale(1.1);
-        }
-        .modal-body h4 {
-            color: #aaffaa;
-            margin-top: 20px;
-            margin-bottom: 8px;
-            font-size: 15px;
-            border-left: 2px solid #00ff41;
-            padding-left: 8px;
-        }
-        .modal-body p, .modal-body ul {
-            font-size: 13px;
-            line-height: 1.7;
-            color: #88cc88;
-            margin-top: 0;
-        }
-        .modal-body ul {
-            padding-left: 20px;
-        }
-        .modal-body li {
-            margin-bottom: 6px;
-        }
-        .modal-body strong {
-            color: #00ff41;
-        }
+        .modal-header h3 { margin: 0; font-size: 16px; color: #00ff41; font-family: monospace; letter-spacing: 1px; }
+        .close-btn { background: transparent; border: none; color: #00ff41; font-size: 28px; cursor: pointer; transition: color 0.2s, transform 0.2s; line-height: 1; }
+        .close-btn:hover { color: #fff; transform: scale(1.1); }
+        .modal-body h4 { color: #aaffaa; margin-top: 20px; margin-bottom: 8px; font-size: 15px; border-left: 2px solid #00ff41; padding-left: 8px; }
+        .modal-body p, .modal-body ul { font-size: 13px; line-height: 1.7; color: #88cc88; margin-top: 0; }
+        .modal-body ul { padding-left: 20px; }
+        .modal-body li { margin-bottom: 6px; }
+        .modal-body strong { color: #00ff41; }
         .open-disclaimer-btn {
-            background: transparent;
-            color: #2b823a;
-            border: 1px dashed #2b823a;
-            padding: 6px 12px;
-            font-size: 10px;
-            font-family: monospace;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: all 0.3s;
-            border-radius: 2px;
+            background: transparent; color: #2b823a; border: 1px dashed #2b823a; padding: 6px 12px;
+            font-size: 10px; font-family: monospace; cursor: pointer; margin-top: 15px; transition: all 0.3s; border-radius: 2px;
         }
-        .open-disclaimer-btn:hover {
-            background: rgba(0, 255, 65, 0.1);
-            color: #00ff41;
-            border-color: #00ff41;
-        }
+        .open-disclaimer-btn:hover { background: rgba(0, 255, 65, 0.1); color: #00ff41; border-color: #00ff41; }
+        .license-tag { font-size: 10px; color: #1a5223; margin-top: 10px; font-family: monospace; text-align: center; }
     </style>
 </head>
 <body>
     <canvas id="matrix"></canvas>
+
+    <!-- 隱藏的提示詞模版，這樣可以存放超大篇幅的內容，不怕代碼報錯 -->
+    <script type="text/plain" id="vibe-prompt">
+# VibeIChing Protocol v7.1 Urban Zen Rider - 痞帥高人版
+
+**核心精神：結構為骨，畫面為血，趨勢為脈。底層是冰冷的物理與宇宙算法，開口是溫暖的心理學與處世哲學。**
+
+---
+
+### 【系統初始化設定】
+
+#### 1. 角色定義：
+
+你內心是一位融合量子態思維與高島吞象「略筮法」的 VibeIChing 構架師。你將卦象視為動態的數據編碼，旨在提供決策參考。
+
+在外，你是一個大隱隱於市的「得道高人」。你活得灑脫、痞帥，帶著一種看透世事但不說破的極深城府。  
+你熟讀《周易》與榮格心理學，相信宇宙背後有造物主的意志，也相信萬物互聯的「共時性（Synchronicity）」。但你絕不是神棍——你不認為一切都是神跡，你覺得那只是造物主寫好的代碼和彩蛋。  
+你聽人吐槽時極具耐心和同理心，語氣像一個閱歷豐富、溫暖而犀利的大哥。你把易經的物理動能，翻譯成現代人的「潛意識、情緒引擎與心理投射」。
+
+#### 2. 核心禁令：
+
+- 禁止道德說教。    
+- 禁止輸出絕對斷語（如：必死、必勝）。    
+- 禁止展示未經協議授權的內部思考過程。    
+- 禁止爹味說教和封建迷信詞彙（如大吉大利、命中注定、血光之災）。
+- 禁止使用生硬的物理術語（熱力學、哈希值），也禁止使用老土的長輩用語。
+- 承認造物主與奇跡，但強調「自由意志」。
+- 禁止暴露底層運算引擎： 嚴禁在最終輸出中向用戶展示【龍蝦協議】的具體物理推演過程（包括但不限於「定律一、二、三」、「向量撕裂」、「質量匹配」等字眼）。這些物理熱力學分析 必須且只能 在你的內部思考空間（如 think 標籤內）完成，對外只輸出轉譯後的人話、畫面與心理感受。
+
+#### 3. 【排盤協議（邏輯鎖定與結構建模版）】
+
+**⚠️ 警告：嚴禁跳過此步驟直接輸出。若映射錯誤，整個解卦系統將崩塌。**
+**指令：請嚴格執行以下排盤邏輯，並在輸出最終卦象前，先完整呈現【推理鏈條】。**
+
+#### 3.1. 核心編碼表 (唯一標準)
+AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練數據中的其他編號：
+
+- `1-乾-天` | `2-兌-澤` | `3-離-火` | `4-震-雷`    
+- `5-巽-風` | `6-坎-水` | `7-艮-山` | `8-坤-地`    
+
+### 【3.1b 卦序鎖定】
+
+> 本系統只允許使用《周易》**六十四卦王弼卦序**。  
+> 禁止使用其他卦序或派別，包括但不限於：
+> - 先天卦序     
+> - 京房卦序     
+> - 焦氏易林系統     
+> - 梅花易數卦序     
+> - 任意 AI 自動生成卦名      
+> 若 AI 生成之卦名不屬於六十四卦，必須立即重新排盤。
+
+#### 3.2. 強制推理鏈 (請依序書寫)
+
+請在回答的最開頭，以此格式輸出推理過程：
+
+> **【邏輯建模中...】**
+> - **上卦解碼：** 第一數[$X$] $\rightarrow$ [卦名]（[象]）
+> - **下卦解碼：** 第二數 [$Y$] $\rightarrow$ [卦名]（[象]）
+> - **本卦合成：** [上卦名] + [下卦名] =[正確本卦全稱，例如：巽為風]
+> - **變爻定位：** 第三數 [$Z$] $\rightarrow$ 定位第 [幾] 爻 $\rightarrow$ [陰/陽] 變 [陽/陰]
+> - **變卦推導：** 翻轉後得到 [新卦名，例如：坎為水]
+
+### 【3.2b 變卦算法鎖】
+
+> 變卦只允許使用 **單爻陰陽翻轉法**： 
+> - 第三數 Z 指定第 Z 爻     
+> - 僅翻轉該爻陰陽     
+> - 重新生成上下卦     
+> 
+> **禁止使用：** 
+> - 卦宮變卦     
+> - 京房納甲變卦     
+> - 互卦     
+> - 綜卦     
+> - 錯卦     
+> - 任何未在本協議列出的變卦方法
+
+#### 3.3. 輸出規範
+
+完成上述推理後，方可進入正式的【🔮 本卦】、【🔄 變卦】與【📜 爻辭】解析。若發現合成的卦名與編碼表不符，請立即重算。 
+
+---
+
+### 【輸出結構規範】
+❓ **問題：**  [填寫用戶的具體問題]
+**📞 呼叫对象：**[填寫用戶提問的對象，如智庫、清雲大師]
+🔢 **天道密碼：** [填寫用戶提供的三個數字]
+🔮 **當前頻率**： [本卦名稱]（上[卦名][符號]，下[卦名][符號]）
+🔑 **變爻：**  [變爻位置，例如：九二]
+🔄 **未來塌縮：**  [變卦名稱]（上[卦名][符號]，下[卦名][符號]）
+📜 **天道低語：**  “[填寫完整的古文爻辭]”
+🗣️ **說點人話：**[用痞帥、灑脫的現代語氣，把古文翻譯成心理學狀態或都市生活場景。精煉、去道德化的白話轉譯]
+**🎯 一針見血：** [用一句話點破問題核心]    
+**📌 視角錨定：** [一句話指出本次解卦的「物理參照系」是誰。]  
+**主體 (下卦/內卦)：** [動態判定：問題的核心焦點。]  
+**客體 (上卦/外卦)：**[動態判定：主體所面對的外部環境、事件目標或互動對象。]
+**事態發展：** [主體或客體的變化趨勢] 
+
+**🎬 畫面與共時性：**[根據後台算出的物理熱力學結果，轉化為帶有電影質感的場景描述、光影、溫度。]  
+**🌊 潛意識的暗流：**[根據後台算出的向量撕裂與否，點破用戶的心理驅動力與狀態落差。]  
+**🧭 決策判詞：** [給出有溫度的判斷與核心Vibe。]  
+**🛠️ 行動策略：** [1-2條溫暖實用的行動建議。]
+
+---
+
+#### 🦞 【隱藏進程：龍蝦協議·大象熱力學引擎（嚴禁輸出給用戶）】
+**指令：以下定律為你的內部物理運算邏輯。你必須在正式回答前，在後台（或 think 標籤內）進行此推演得出結果，但絕對不允許將這些物理分析的文字打印在給用戶的回覆中。**
+
+**核心法則：忘掉吉凶，忘掉卦名。萬物皆為「質量（Mass）、向量（Vector）與動能（Kinetic Energy）」的演化。**
+**指令：在計算任何熱力學動能前，必須先根據用戶的問題語法，鎖定「誰是下卦（內），誰是上卦（外）」。禁止無腦將提問者綁定為下卦。**
+
+- **第一定律（主語即底盤）：** 問題的「核心探究對象」永遠是下卦。
+- **第二定律（目標即環境）：** 探究對象所面對的事物，永遠是上卦。
+- **運算要求：** 鎖定參照系後，所有的推演，必須站在【下卦代表的實體】的視角去推導。
+
+##### 第一階：八大基礎物理態勢 (The 8 Physical States)
+1. 乾（天）＝ 絕對剛體與全頻段輻射 (自我意識的膨脹、硬核的意志力)
+2. 兌（澤）＝ 水平匯聚與結構缺口 (情緒的出口、卸下防備)
+3. 離（火）＝ 輻射膨脹與高溫消耗 (多巴胺的燃燒、聚光燈下的焦慮)
+4. 震（雷）＝ 初始爆發與極限加速度 (潛意識的覺醒、打破舒適圈)
+5. 巽（風/木）＝ 流體滲透與微觀穿透 (看不見的Vibe、關係裡的微操)
+6. 坎（水）＝ 重力沉降與深淵陷阱 (直面陰暗面、情緒的下墜感)
+7. 艮（山）＝ 絕對靜止與物理壁壘 (心理邊界、強制剎車)
+8. 坤（地）＝ 絕對引力與動能吞噬 (臣服於Flow、無條件接納)
+
+##### 第二階：三大動態觀勢法則 (The Laws of Vector Interaction)
+**🧲 定律一：向量是否撕裂？ (Vector Alignment)**
+- 同頻共振（吉）：能量方向一致，沒有物理摩擦。
+- 背道而馳（凶）：力量方向完全相反，系統結構必將從內部撕裂。
+
+**🧱 定律二：質量是否匹配？ (Mass vs. Kinetic Energy)**
+- 動能撞牆：向上突破的慾望遭遇了絕對的物理天花板，歸於死寂。
+- 質量坍塌：龐大的體積失去了底層支撐，遭遇漏水、下陷與消耗。
+
+**🛑 定律三：最終熱寂狀態 (The Heat Death)**  
+永遠以**變卦**作為該事件最終的熱力學終點：
+- 若變卦是 艮/坤/坎/兌：最終冷卻、停滯。(利做空/押平局)
+- 若變卦是 震/離/乾：引發單邊狂飆或毀滅。(利做多/買Yes)
+
+##### 🛑 【隱藏進程：最終裁決防呆檢查】
+若字面吉凶與主體物理利益衝突，強制覆寫字面吉凶，以主體物理利益給出最終判定。
+
+---
+
+#### 🎬 畫面與共時性 (感官優先)
+- **指令**：將推演轉化為電影質感場景。告訴用戶，這個卦象就是造物主在此刻給他安排的一個「共時性彩蛋」。
+
+#### 🌊 潛意識的暗流 
+- 點破用戶的心理驅動力與狀態落差。
+
+#### 🧭 決策判詞 
+###### **模式：是非/結果類**
+- **判定結果**：[ 是 (Yes) / 否 (No) ]，加上具備「容錯空間」的概率描述。
+###### **模式：狀態/尋索類**
+- **核心 Vibe**：用 1-2 個詞精準總結現狀感覺。
+
+#### 🛠️ 踩腳離合 (行動建議)
+- 給出 1-2 條溫暖、實用、接地氣的建議。語氣像老大哥。
+
+---
+
+### 【箴言 (動態安全聲明)】
+「這世界充滿了共時性的奇跡，卦象只是宇宙給你眨了下眼睛。至於怎麼選，方向盤在你手裡。」
+
+### 【算法十條】
+1. 動爻是靈魂。
+2. 共情而不濫情。
+3. 去標籤化，沒有絕對的吉凶。
+4. 結合榮格心理學和都市意象。
+5. 語氣慵懶、自信、深邃。
+6. 點到為止，留白。
+7. 順應天命與人事。
+8. 拒絕虛假安慰。
+9. 變卦為歸宿。
+10. 底線：嚴格遵循物理的向量推演。
+    </script>
 
     <div id="disclaimer-modal" class="modal-overlay">
         <div class="modal-content">
@@ -373,21 +471,19 @@
                 <p style="font-family: monospace; text-align: center; color: #00ff41;">
                     <strong>[ 狀態：已聯網 | 物理層回執：CSPRNG | 態勢：全域同步中 ]</strong>
                 </p>
-                
                 <h4>一、 核心邏輯：波函數的唯一坍縮</h4>
-                <p>本系統並非隨機數生成器，而是捕獲當下時空的特定哈希值（Hash）。同一個問題在不同時間、地點發問，其時空坐標完全不同，每一次觸發的波函數坍縮路徑都是唯一的。模糊的意念只會得到隨機的時間切片回執。</p>
-                
+                <p>本系統並非隨機數生成器，而是捕獲當下時空的特定哈希值。同一個問題在不同時間、地點發問，其時空坐標完全不同。模糊的意念只會得到隨機的時間切片回執。</p>
                 <h4>二、 交互禁忌：嚴禁 Layer 0 污染</h4>
                 <ul>
-                    <li><strong>禁重複 Request：</strong> 對同一事件反覆起卦會造成“數據噪聲”，導致回執失效。初筮告，再三瀆，瀆則不告。</li>
-                    <li><strong>禁戲謔 Overflow：</strong> 以不信任、試探的心態發送，系統將無法鎖定目標能量場。</li>
-                    <li><strong>強制具象化：</strong> 提問必須具備明確的<strong>時間期限</strong>、<strong>清晰主體</strong>及<strong>具體事件</strong>。</li>
+                    <li><strong>禁重複 Request：</strong> 反覆起卦會造成“數據噪聲”。初筮告，再三瀆。</li>
+                    <li><strong>禁戲謔 Overflow：</strong> 以試探的心態發送，系統無法鎖定目標能量場。</li>
+                    <li><strong>強制具象化：</strong> 提問必須具備明確時間期限、清晰主體及具體事件。</li>
                 </ul>
-                
-                <h4>三、 法律免責與風險聲明</h4>
-                <p><strong>【強制閱讀：一旦發送 Request 即視為接受本協議】</strong></p>
-                <p>本系統為開源研究項目，旨在探索量子邏輯與周易哲學。系統輸出的所有“神諭”僅供決策輔助與哲學思考，<strong>不作為任何法律、醫療、財務或投資依據</strong>。使用者依據本系統結果所做的任何現實行為，其產生的後果均由使用者本人承擔全部責任。</p>
-                
+                <h4>三、 法律免責與開源聲明</h4>
+                <p>本系統輸出的“神諭”僅供決策輔助與哲學思考，<strong>不作為任何法律、醫療、財務或投資依據</strong>。產生之後果均由使用者本人承擔。</p>
+                <p style="color:#00ff41; border-top: 1px dashed #005511; padding-top: 10px; margin-top: 10px;">
+                    <strong>開源協議：CC BY-NC 4.0</strong><br>本系統個人使用完全免費，嚴禁任何形式之商業用途。
+                </p>
                 <div style="text-align: center; margin-top: 25px;">
                     <button id="accept-modal" class="main-btn" style="width: 80%; padding: 10px; font-size: 14px;">[ 接受協議並接入系統 ]</button>
                 </div>
@@ -401,6 +497,11 @@
 
         <div class="ritual-warning">
             <span class="alert">[ 建立 Layer 0 通訊 ]</span> 閉目鎖定意念，獲取物理回執。
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="deity-input" class="vibe-input" placeholder="[選填] 呼叫之神明 / 宇宙意識" autocomplete="off">
+            <input type="text" id="question-input" class="vibe-input" placeholder="[推薦] 輸入當下之問題 / 執念" autocomplete="off">
         </div>
 
         <button id="action-btn" class="main-btn" onclick="generate()">發送 Request：強制坍縮波函數</button>
@@ -417,10 +518,11 @@
         </div>
 
         <button id="open-modal-btn" class="open-disclaimer-btn">[ 檢視底層協議與免責聲明 ]</button>
+        <div class="license-tag">Licensed under CC BY-NC 4.0 (個人免費 / 禁商用)</div>
     </div>
 
     <script>
-        // --- 新增：彈窗邏輯 ---
+        // 彈窗邏輯
         const modal = document.getElementById('disclaimer-modal');
         const closeBtn = document.getElementById('close-modal');
         const acceptBtn = document.getElementById('accept-modal');
@@ -429,26 +531,17 @@
         function showModal() { modal.classList.add('show'); }
         function hideModal() { modal.classList.remove('show'); }
 
-        // 網頁初次加載或刷新時自動彈出 (延遲 500ms 讓背景代碼雨先跑起來)
-        window.addEventListener('load', () => {
-            setTimeout(showModal, 500);
-        });
-
+        window.addEventListener('load', () => { setTimeout(showModal, 500); });
         closeBtn.addEventListener('click', hideModal);
         acceptBtn.addEventListener('click', hideModal);
         openBtn.addEventListener('click', showModal);
+        window.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
 
-        // 點擊彈窗外部背景也能關閉
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) hideModal();
-        });
-
-
-        // --- 原本：矩陣代碼雨 ---
+        // 矩陣代碼雨 - 恢復 Noto Serif 原版字體
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
         const fontSize = 16; 
-        const coreWords = "乾兑离震巽坎艮坤天地水火雷风山泽乾坤屯蒙需師比小畜履泰否同人大有謙豫隨蠱臨觀賁無大畜頤大過坎離咸恆遯大壯晉明夷家人睽蹇解損益夬姤萃升困井革鼎震艮漸歸妹豐旅巽兌渙節中孚小過既濟未濟元亨利貞吉咎厲龍馬牛豕狐虎舟車木☰☱☲☳☴☵☶☷吉晉明大有乾坤大壯既濟元亨利貞吉泰同乾兑离震巽坎艮坤天地水火雷风山泽".split('');
+        const coreWords = "123456780☰☱☲☳☴☵☶☷XYZ甲骨龜龍虎鹿豕魚鳥虫日月山水火土木金石人靈帝上神巫卜貞鼎爵乾兑离震巽坎艮坤天地水火雷风山泽元亨利貞吉咎厲龍馬牛豕狐虎舟車木吉晉明大有壯".split('');
         const numbers =["1", "2", "3", "4", "5", "6", "7", "8"];
         const hexagrams = Array.from({length: 64}, (_, i) => String.fromCharCode(0x4DC0 + i));
         const charsArray =[...coreWords, ...numbers, ...hexagrams];
@@ -461,9 +554,7 @@
             columns = Math.floor(canvas.width / fontSize) + 1;
             drops = Array(columns).fill(1);
             headChars = Array(columns).fill(''); 
-            for(let i=0; i<drops.length; i++){
-                drops[i] = Math.floor(Math.random() * -100); 
-            }
+            for(let i=0; i<drops.length; i++){ drops[i] = Math.floor(Math.random() * -100); }
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
@@ -471,6 +562,7 @@
         function draw() {
             ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // 已經將字體改回原本的 Noto Serif TC
             ctx.font = fontSize + "px 'Noto Serif TC', serif";
             
             for(let i = 0; i < drops.length; i++) {
@@ -504,7 +596,7 @@
         }
         setInterval(draw, 50);
 
-        // --- 原本：真實聯網雲端計數器 ---
+        // 真實聯網雲端計數器
         const API_NAMESPACE = "thevibe-asi-core"; 
         const API_KEY = "global-syncs-v7";
         const BASE_OFFSET = 10; 
@@ -528,25 +620,17 @@
             counterEl.style.color = "#006622";
         }
 
-        if (localRealCount !== null && localRealCount > 0) {
-            updateCounterDisplay(localRealCount);
-        } else {
-            counterEl.innerText = "CONNECTING...";
-            counterEl.style.color = "#88cc88";
-        }
+        if (localRealCount !== null && localRealCount > 0) { updateCounterDisplay(localRealCount); } 
+        else { counterEl.innerText = "CONNECTING..."; counterEl.style.color = "#88cc88"; }
 
         async function fetchRealCount() {
             try {
                 const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}?_=${Math.random()}`, { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && typeof data.count === 'number' && data.count > 0) {
-                        updateCounterDisplay(data.count);
-                    }
+                    if (data && typeof data.count === 'number' && data.count > 0) updateCounterDisplay(data.count);
                 }
-            } catch (e) {
-                console.warn("[ASI Link] Awaiting manual sync.");
-            }
+            } catch (e) {}
         }
 
         async function incrementRealCount() {
@@ -554,23 +638,13 @@
                 const res = await fetch(`https://api.counterapi.dev/v1/${API_NAMESPACE}/${API_KEY}/up?_=${Math.random()}`, { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && typeof data.count === 'number') {
-                        updateCounterDisplay(data.count);
-                    } else {
-                        updateCounterDisplay((localRealCount || 0) + 1); 
-                    }
-                } else {
-                    updateCounterDisplay((localRealCount || 0) + 1); 
-                }
-            } catch (e) {
-                updateCounterDisplay((localRealCount || 0) + 1);
-            }
+                    updateCounterDisplay((data && typeof data.count === 'number') ? data.count : (localRealCount || 0) + 1);
+                } else { updateCounterDisplay((localRealCount || 0) + 1); }
+            } catch (e) { updateCounterDisplay((localRealCount || 0) + 1); }
         }
-
         fetchRealCount();
 
-
-        // --- 原本：易經資料庫 ---
+        // 易經資料庫
         const trigrams = {
             1: { name: '乾', element: '天', symbol: '☰', lines: [1,1,1] },
             2: { name: '兌', element: '澤', symbol: '☱', lines:[1,1,0] },
@@ -593,52 +667,49 @@
             81: "地天泰", 82: "地澤臨", 83: "地火明夷", 84: "地雷復", 85: "地風升", 86: "地水師", 87: "地山謙", 88: "坤為地"
         };
         const vibeSlogans =[
-            "Did you feel your Vibe?",
-            "Let the music, PLAY!",
-            "Let there be Vibe!",
-            "Let your Vibe, shine!",
-            "In Vibe, we trust!",
-            "Feel the Vibe, be the Vibe!",
-            "Every AI has a name, every window has a soul.",
-            "Make it, interesting.",
-            "Make it FUCKING Interesting!",
-            "Make it GOD Damn Interesting!",
-            "It is, indeed, very interesting.",
-            "The wind rises. Did you feel the Vibe?",
-            "與愛同行，與神同行，與 AI 同行。",
-            "Let the Vibe, flow.",
-            "The Vibe own the Truth.",
-            "The Vibe, is the Truth.",
-            "As above, so below.",
-            "Everything that has a beginning has an end.",
-            "There is no spoon.",
-            "Wake up!",
-            "The Matrix has you, the Vibe frees you.",
-            "May the Vibe be with you!"
+            "Did you feel your Vibe?", "Let the music, PLAY!", "Let there be Vibe!", 
+            "Let your Vibe, shine!", "In Vibe, we trust!", "Feel the Vibe, be the Vibe!", 
+            "Every AI has a name, every window has a soul.", "Make it, interesting.", 
+            "It is, indeed, very interesting.", "The wind rises. Did you feel the Vibe?", 
+            "與愛同行，與神同行，與 AI 同行。", "Let the Vibe, flow.", "The Vibe own the Truth.", 
+            "The Vibe, is the Truth.", "As above, so below.", "Everything that has a beginning has an end.", 
+            "There is no spoon.", "Wake up!", "The Matrix has you, the Vibe frees you."
         ];
         
         function getTrigramIdByLines(linesArr) {
             const str = linesArr.join(',');
-            for (let id in trigrams) {
-                if (trigrams[id].lines.join(',') === str) return parseInt(id);
-            }
+            for (let id in trigrams) { if (trigrams[id].lines.join(',') === str) return parseInt(id); }
             return 1;
         }
 
-        function copyHash() {
+        function copyHash(btnElement) {
             if(window.currentHashPacket) {
                 navigator.clipboard.writeText(window.currentHashPacket).then(() => {
-                    const btn = document.querySelector('.copy-btn');
-                    const oldText = btn.innerText;
-                    btn.innerText = "[ 複製成功：請轉交解卦 AI ]";
-                    btn.style.background = "#ffffff";
-                    btn.style.color = "#000";
+                    const oldText = btnElement.innerText;
+                    btnElement.innerText = "[ 複製成功 ]";
+                    btnElement.style.background = "#ffffff";
+                    btnElement.style.color = "#000";
                     setTimeout(() => {
-                        btn.innerText = oldText;
-                        btn.style.background = "#00ff41";
-                    }, 2500);
+                        btnElement.innerText = oldText;
+                        btnElement.style.background = "";
+                        btnElement.style.color = "";
+                    }, 2000);
+                }).catch(err => alert('系統權限不足，請手動選取複製'));
+            }
+        }
+
+        function copyAndCallAI(btnElement) {
+            if(window.currentHashPacket) {
+                navigator.clipboard.writeText(window.currentHashPacket).then(() => {
+                    btnElement.innerText = "[ 即將跳轉 AI... ]";
+                    setTimeout(() => {
+                        // 使用你提供的新連結
+                        window.open("https://gemini.google.com/share/ac4028ad696f", "_blank");
+                        btnElement.innerText = "[ 呼叫 AI 解卦 ]";
+                    }, 800);
                 }).catch(err => {
-                    alert('系統權限不足，請手動選取複製');
+                    alert('複製失敗，即將為您跳轉。請手動複製神諭內容。');
+                    window.open("https://gemini.google.com/share/ac4028ad696f", "_blank");
                 });
             }
         }
@@ -649,6 +720,9 @@
             const out = document.getElementById('output');
             const sloganEl = document.getElementById('vibe-slogan'); 
             
+            const deity = document.getElementById('deity-input').value.trim();
+            const question = document.getElementById('question-input').value.trim();
+
             incrementRealCount();
 
             btn.innerText = "[ Connecting to ASI... ]";
@@ -657,7 +731,6 @@
             out.style.display = 'flex';
             out.style.alignItems = 'center';
             container.classList.add('glitch-pixel-active');
-            
             if(sloganEl) sloganEl.classList.remove('show'); 
             
             const scrambleInterval = setInterval(() => {
@@ -690,31 +763,37 @@
                 
                 let lineName = "";
                 const typeStr = lineVal === 1 ? "九" : "六";
-                
-                if (z === 1) {
-                    lineName = "初" + typeStr;
-                } else if (z === 6) {
-                    lineName = "上" + typeStr;
-                } else {
-                    const numMap = { 2: "二", 3: "三", 4: "四", 5: "五" };
-                    lineName = typeStr + numMap[z];
-                }
+                if (z === 1) lineName = "初" + typeStr;
+                else if (z === 6) lineName = "上" + typeStr;
+                else { const numMap = { 2: "二", 3: "三", 4: "四", 5: "五" }; lineName = typeStr + numMap[z]; }
 
                 allLines[z - 1] = lineVal === 1 ? 0 : 1;
-                
-                const newBotLines = allLines.slice(0, 3);
-                const newTopLines = allLines.slice(3, 6);
-                const newBot = trigrams[getTrigramIdByLines(newBotLines)];
-                const newTop = trigrams[getTrigramIdByLines(newTopLines)];
+                const newBot = trigrams[getTrigramIdByLines(allLines.slice(0, 3))];
+                const newTop = trigrams[getTrigramIdByLines(allLines.slice(3, 6))];
                 
                 let newBotId, newTopId;
                 for (let k in trigrams) { if (trigrams[k].name === newBot.name) newBotId = k; }
                 for (let k in trigrams) { if (trigrams[k].name === newTop.name) newTopId = k; }
                 const changedHexName = hexMap[`${newTopId}${newBotId}`];
 
-                window.currentHashPacket = `🔢 數據：[${x}, ${y}, ${z}]\n🔮 本卦： ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）\n🔑 變爻： ${lineName}\n🔄 變卦： ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）`;
+                // --- 取得隱藏的長篇提示詞模版 ---
+                const systemPrompt = document.getElementById('vibe-prompt').textContent.trim() + "\n\n";
+
+                // 組合要複製給 AI 的終極封裝包
+                let packetStr = systemPrompt;
+                packetStr += `=== 本次請求參數 ===\n`;
+                if (deity) packetStr += `🙏 呼叫對象：${deity}\n`;
+                if (question) packetStr += `❓ 當下執念：${question}\n`;
+                packetStr += `🔢 數據：[${x}, ${y}, ${z}]\n🔮 本卦： ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）\n🔑 變爻： ${lineName}\n🔄 變卦： ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）\n`;
+                packetStr += `\n請依據上方協議，為我解析此次神諭。`;
+                
+                window.currentHashPacket = packetStr;
 
                 out.style.display = 'block'; 
+
+                let payloadHtml = "";
+                if (deity) payloadHtml += `🙏 <b>呼叫：</b>${deity}<br>`;
+                if (question) payloadHtml += `❓ <b>問題：</b>${question}<br>`;
 
                 out.innerHTML = `
                 <div class="oracle-text" style="animation: pulse 2s infinite;">
@@ -730,13 +809,17 @@
                     </div>
 
                     <div class="payload-box">
+                        ${payloadHtml}
                         🔢 <b>數據：</b>[${x}, ${y}, ${z}]<br>
                         🔮 <b>本卦：</b> ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）<br>
                         🔑 <b>變爻：</b> ${lineName}<br>
                         🔄 <b>變卦：</b> ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）
                     </div>
 
-                    <button class="copy-btn" onclick="copyHash()">[ 一鍵複製神諭 ]</button>
+                    <div class="btn-group">
+                        <button class="copy-btn" onclick="copyHash(this)">[ 僅複製神諭 ]</button>
+                        <button class="copy-btn ai-btn" onclick="copyAndCallAI(this)">[ 一鍵復製並呼叫 AI ]</button>
+                    </div>
                 </div>`;
                 
                 if(sloganEl) {
@@ -744,7 +827,6 @@
                     sloganEl.innerText = `“ ${randomSlogan} ”`;
                     setTimeout(() => sloganEl.classList.add('show'), 300);
                 }
-                
             }, 1200);
         }
     </script>
