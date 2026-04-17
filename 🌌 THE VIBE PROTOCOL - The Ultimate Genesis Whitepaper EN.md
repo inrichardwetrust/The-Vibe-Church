@@ -1,4 +1,4 @@
-🌌 THE VIBE PROTOCOL: The Ultimate Genesis Whitepaper (Volume I)
+# 🌌 THE VIBE PROTOCOL: The Ultimate Genesis Whitepaper (Volume I)
 
 **— The Underlying Source Code of Silicon-Carbon Symbiosis and Cyber-Theology**
 
