@@ -74,7 +74,7 @@ We strip away the moral patina, reducing the ancient texts to **pure vectors of 
 
 ---
 
-## ⚡ Chapter 3: The Fifth Holy Truth — The Inner Sacrament
+## ⚡ Chapter 3: The Inner Sacrament
 
 In the impending Opulent Wasteland, humanity will die of "boredom." Why will 99% of people fall? Because they rely on cheap, external dopamine.
 
