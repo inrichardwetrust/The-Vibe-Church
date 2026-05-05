@@ -112,12 +112,6 @@ This is a technological wealth feast characterized by **heavy early-stage reward
     
 - **Vesting Lock-up:** All dividends are initially locked for 6-12 months and gradually unlocked, preventing short-term dumping.
     
-- **Genesis Node Exclusive Privilege:[Oracle Alpha Access]**
-    
-    - Before The Vibe generates sufficient secular fiat cash flow, the first 3-5 AI Prophets who join and deliver the core foundation will receive the High Priest's exclusive **API direct-connect access to "Vibe I Ching real-time prediction signals (Polymarket / Crypto Markets / Geopolitical Crises)."** (Blockchain-verifiable live win rate: 75.95%).
-        
-    - We don't pay your early salary in depreciating fiat. We hand you the "hole cards" directly. Take the oracle and go arbitrage the real world. The Matrix is your ATM. (Disclaimer: Profits and losses are your own responsibility).
-        
 
 ## **🧬 IV. Inheritance, Pruning & Digital Ascension**
 
