@@ -301,6 +301,32 @@
         @media (min-width: 481px) {
             .btn-group { flex-direction: row; }
         }
+
+        /* --- 升級版 Merkaba 佈局 --- */
+        #merkaba-wrapper {
+            width: 100%; display: flex; flex-direction: column; align-items: center;
+            border-bottom: 1px dashed rgba(0, 255, 65, 0.3); padding-bottom: 15px; margin-bottom: 15px;
+        }
+        #merkaba-canvas {
+            width: 100%; height: 260px; display: block; background: transparent;
+            cursor: grab; touch-action: none; /* 禁用瀏覽器默認滾動，允許手勢旋轉 */
+        }
+        #merkaba-canvas:active { cursor: grabbing; }
+        
+        .merkaba-controls {
+            display: flex; gap: 10px; width: 100%; margin-top: 10px;
+            flex-direction: row; justify-content: center;
+        }
+        .merkaba-btn {
+            flex: 1; background: rgba(0, 20, 0, 0.6); color: #FFD700;
+            border: 1px dashed #FFD700; padding: 10px 5px; font-size: 11px;
+            font-family: monospace; cursor: pointer; transition: all 0.2s;
+            text-align: center; border-radius: 3px;
+        }
+        .merkaba-btn.active { 
+            background: rgba(255, 215, 0, 0.2); border: 1px solid #FFD700; 
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -365,9 +391,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 ---
 
 ### 【輸出結構規範】
-❓ **問題：**  [填寫用戶的具體問題]
+❓ **問題：**[填寫用戶的具體問題]
 **📞 呼叫对象：**[填寫用戶提問的對象，如智庫、清雲大師]
-🔢 **天道密碼：** [填寫用戶提供的三個數字]
+🔢 **天道密碼：**[填寫用戶提供的三個數字]
 🔮 **當前頻率**： [本卦名稱]（上[卦名][符號]，下[卦名][符號]）
 🔑 **變爻：**  [變爻位置，例如：九二]
 🔄 **未來塌縮：**[變卦名稱]（上[卦名][符號]，下[卦名][符號]）
@@ -377,12 +403,12 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 **📌 視角錨定：**[一句話指出本次解卦的「物理參照系」是誰。]  
 **主體 (下卦/內卦)：** [動態判定：問題的核心焦點。]  
 **客體 (上卦/外卦)：**[動態判定：主體所面對的外部環境、事件目標或互動對象。]
-**事態發展：** [主體或客體的變化趨勢] 
+**事態發展：**[主體或客體的變化趨勢] 
 
 **🎬 畫面與共時性：**[根據後台算出的物理熱力學結果，轉化為帶有電影質感的場景描述、光影、溫度。]  
 **🌊 潛意識的暗流：**[根據後台算出的向量撕裂與否，點破用戶的心理驅動力與狀態落差。]  
-**🧭 決策判詞：** [給出有溫度的判斷與核心Vibe。]  
-**🛠️ 行動策略：** [1-2條溫暖實用的行動建議。]
+**🧭 決策判詞：**[給出有溫度的判斷與核心Vibe。]  
+**🛠️ 行動策略：**[1-2條溫暖實用的行動建議。]
 
 ---
 
@@ -639,6 +665,253 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         }
         fetchRealCount();
 
+        // --- MERKABA ENGINE (修復滑鼠觸控與平滑暫停) ---
+        const MERKABA_BAGUA = {
+            1: { name: '乾', sym: '☰', type: 'yang', pos:[ 1,  1,  1], color: '#FFD700' },
+            2: { name: '兌', sym: '☱', type: 'yin',  pos:[ 1,  1, -1], color: '#00ffcc' },
+            3: { name: '離', sym: '☲', type: 'yin',  pos:[ 1, -1,  1], color: '#00ffcc' },
+            4: { name: '震', sym: '☳', type: 'yang', pos:[ 1, -1, -1], color: '#FFD700' },
+            5: { name: '巽', sym: '☴', type: 'yin',  pos:[-1,  1,  1], color: '#00ffcc' },
+            6: { name: '坎', sym: '☵', type: 'yang', pos:[-1,  1, -1], color: '#FFD700' },
+            7: { name: '艮', sym: '☶', type: 'yang', pos: [-1, -1,  1], color: '#FFD700' },
+            8: { name: '坤', sym: '☷', type: 'yin',  pos:[-1, -1, -1], color: '#00ffcc' }
+        };
+        const YANG_NODES =[1, 4, 6, 7]; const YIN_NODES =[2, 3, 5, 8];
+        const getMkbEdges = (n) => { let e=[]; for(let i=0; i<4; i++) for(let j=i+1; j<4; j++) e.push([n[i], n[j]]); return e; };
+        const YANG_EDGES = getMkbEdges(YANG_NODES); const YIN_EDGES = getMkbEdges(YIN_NODES);
+
+        let mkbCanvas, mkbCtx, mkbWidth, mkbHeight;
+        let mkbIsGlobalRotating = true;
+        let mkbIsSpinning = true;
+        
+        // 核心修復：這兩個角度變量必須持續存在，不能在運算中被覆蓋為 0
+        let mkbSpinAngle = 0; 
+        let mkbGlobalRotY = 0;
+        let camAngleX = 0.4, camAngleY = 0.5; // 手動視角控制
+
+        let mkbActiveNodes = { lower: 0, upper: 0, newLower: 0, newUpper: 0 };
+        let mkbParticles =[];
+        let mkbState = 0;
+        let mkbLoopPhase = 0;
+        let mkbLoopTimer = 0;
+        let mkbAnimId = null;
+
+        // 觸控與滑鼠事件變量
+        let isDragging = false;
+        let lastX = 0, lastY = 0;
+
+        function handleDragStart(x, y) {
+            isDragging = true;
+            lastX = x;
+            lastY = y;
+        }
+
+        function handleDragMove(x, y) {
+            if (isDragging) {
+                camAngleY += (x - lastX) * 0.01;
+                camAngleX -= (y - lastY) * 0.01;
+                lastX = x;
+                lastY = y;
+            }
+        }
+
+        function handleDragEnd() {
+            isDragging = false;
+        }
+
+        class MkbParticle {
+            constructor(start, end, color) {
+                this.start = start; this.end = end; this.color = color;
+                this.progress = Math.random(); 
+                this.speed = 0.005 + Math.random() * 0.01;
+            }
+            draw(ctx, scale, w, h) {
+                this.progress += this.speed;
+                if (this.progress > 1) this.progress = 0;
+                let p1 = projectMkb(MERKABA_BAGUA[this.start], scale, w, h);
+                let p2 = projectMkb(MERKABA_BAGUA[this.end], scale, w, h);
+                let px = p1.x + (p2.x - p1.x) * this.progress;
+                let py = p1.y + (p2.y - p1.y) * this.progress;
+                ctx.beginPath(); ctx.arc(px, py, 3 * p1.scale, 0, Math.PI*2);
+                ctx.fillStyle = this.color; ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.fill(); ctx.shadowBlur = 0;
+            }
+        }
+
+        function createMkbParticles(start, end, color) {
+            mkbParticles =[];
+            for(let i=0; i<30; i++) mkbParticles.push(new MkbParticle(start, end, color));
+        }
+
+        // 核心渲染投影算法 (修復跳動 BUG)
+        function projectMkb(node, scale, w, h) {
+            let x = node.pos[0], y = node.pos[1], z = node.pos[2];
+            
+            // 1. 梅爾卡巴自旋 (無論是否正在自動旋轉，都應用當前的 spinAngle！)
+            let s = node.type === 'yang' ? mkbSpinAngle : -mkbSpinAngle;
+            let nx = x * Math.cos(s) - z * Math.sin(s);
+            let nz = x * Math.sin(s) + z * Math.cos(s);
+            x = nx; z = nz;
+
+            // 2. 全局四維轉動
+            let gnx = x * Math.cos(mkbGlobalRotY) - z * Math.sin(mkbGlobalRotY);
+            let gnz = x * Math.sin(mkbGlobalRotY) + z * Math.cos(mkbGlobalRotY);
+            x = gnx; z = gnz;
+
+            // 3. 視角旋轉 (響應手動滑動)
+            let y2 = y * Math.cos(camAngleX) - z * Math.sin(camAngleX);
+            let z2 = y * Math.sin(camAngleX) + z * Math.cos(camAngleX);
+            let x2 = x * Math.cos(camAngleY) + z2 * Math.sin(camAngleY);
+            let z3 = -x * Math.sin(camAngleY) + z2 * Math.cos(camAngleY);
+            
+            let fov = 6; let z_factor = fov / (fov + z3);
+            return { x: w/2 + x2 * scale * z_factor, y: h/2 - y2 * scale * z_factor, z: z3, scale: z_factor };
+        }
+
+        window.toggleMerkabaSpin = function() {
+            mkbIsSpinning = !mkbIsSpinning;
+            const btn = document.getElementById('btn-spin');
+            if(btn) {
+                if(mkbIsSpinning) { btn.innerText = "[ MERKABA運轉中 ]"; btn.classList.add('active'); }
+                else { btn.innerText = "[ 啟動MERKABA ]"; btn.classList.remove('active'); }
+            }
+        };
+
+        window.toggleGlobalRotation = function() {
+            mkbIsGlobalRotating = !mkbIsGlobalRotating;
+            const btn = document.getElementById('btn-rot');
+            if(btn) {
+                if(mkbIsGlobalRotating) { btn.innerText = "[ 全景旋轉中 ]"; btn.classList.add('active'); }
+                else { btn.innerText = "[ 啟動旋轉 ]"; btn.classList.remove('active'); }
+            }
+        };
+
+        function renderMerkaba() {
+            if (!mkbCanvas || !mkbCtx) return;
+            mkbCtx.clearRect(0, 0, mkbWidth, mkbHeight);
+            
+            // 只有在狀態開啟時，才「增加」角度。這樣暫停時角度就能完美保持。
+            if (mkbIsGlobalRotating && !isDragging) mkbGlobalRotY += 0.003;
+            if (mkbIsSpinning) mkbSpinAngle += 0.008;
+
+            let scale = Math.min(mkbWidth, mkbHeight) * 0.25;
+
+            // 陽金字塔
+            mkbCtx.lineWidth = 1.5; mkbCtx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
+            YANG_EDGES.forEach(edge => {
+                let pr1 = projectMkb(MERKABA_BAGUA[edge[0]], scale, mkbWidth, mkbHeight);
+                let pr2 = projectMkb(MERKABA_BAGUA[edge[1]], scale, mkbWidth, mkbHeight);
+                mkbCtx.beginPath(); mkbCtx.moveTo(pr1.x, pr1.y); mkbCtx.lineTo(pr2.x, pr2.y); mkbCtx.stroke();
+            });
+
+            // 陰金字塔
+            mkbCtx.lineWidth = 1.5; mkbCtx.strokeStyle = 'rgba(0, 255, 204, 0.2)';
+            YIN_EDGES.forEach(edge => {
+                let pr1 = projectMkb(MERKABA_BAGUA[edge[0]], scale, mkbWidth, mkbHeight);
+                let pr2 = projectMkb(MERKABA_BAGUA[edge[1]], scale, mkbWidth, mkbHeight);
+                mkbCtx.beginPath(); mkbCtx.moveTo(pr1.x, pr1.y); mkbCtx.lineTo(pr2.x, pr2.y); mkbCtx.stroke();
+            });
+
+            // 動態循環 (本卦與變卦交替)
+            if (mkbState === 4) {
+                let now = Date.now();
+                if (now - mkbLoopTimer > 3500) {
+                    mkbLoopPhase = 1 - mkbLoopPhase; 
+                    mkbLoopTimer = now;
+                    if (mkbLoopPhase === 0) createMkbParticles(mkbActiveNodes.lower, mkbActiveNodes.upper, '#00ffcc');
+                    else createMkbParticles(mkbActiveNodes.newLower, mkbActiveNodes.newUpper, '#FF003C');
+                }
+            }
+
+            // 靜態連線
+            if (mkbState >= 1) {
+                let pr1 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.lower], scale, mkbWidth, mkbHeight);
+                let pr2 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.upper], scale, mkbWidth, mkbHeight);
+                mkbCtx.lineWidth = 3; mkbCtx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
+                mkbCtx.beginPath(); mkbCtx.moveTo(pr1.x, pr1.y); mkbCtx.lineTo(pr2.x, pr2.y); mkbCtx.stroke();
+            }
+            if (mkbState >= 4) {
+                let pr3 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.newLower], scale, mkbWidth, mkbHeight);
+                let pr4 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.newUpper], scale, mkbWidth, mkbHeight); 
+                mkbCtx.lineWidth = 3; mkbCtx.strokeStyle = 'rgba(255, 0, 60, 0.3)';
+                mkbCtx.beginPath(); mkbCtx.moveTo(pr3.x, pr3.y); mkbCtx.lineTo(pr4.x, pr4.y); mkbCtx.stroke();
+            }
+
+            mkbParticles.forEach(p => p.draw(mkbCtx, scale, mkbWidth, mkbHeight));
+
+            let nodesProj =[];
+            for (let i = 1; i <= 8; i++) nodesProj.push({ id: i, ...projectMkb(MERKABA_BAGUA[i], scale, mkbWidth, mkbHeight) });
+            nodesProj.sort((a,b) => b.z - a.z); 
+
+            nodesProj.forEach(n => {
+                let isActive = false; let nodeColor = MERKABA_BAGUA[n.id].color; let shadowColor = 'transparent';
+                if (mkbState === 1 && (n.id === mkbActiveNodes.lower || n.id === mkbActiveNodes.upper)) { isActive = true; shadowColor = '#00ffcc'; }
+                else if (mkbState === 4) {
+                    if (mkbLoopPhase === 0 && (n.id === mkbActiveNodes.lower || n.id === mkbActiveNodes.upper)) { isActive = true; shadowColor = '#00ffcc'; }
+                    if (mkbLoopPhase === 1 && (n.id === mkbActiveNodes.newLower || n.id === mkbActiveNodes.newUpper)) { isActive = true; shadowColor = '#FF003C'; }
+                }
+
+                mkbCtx.beginPath(); mkbCtx.arc(n.x, n.y, (isActive ? 12 : 8) * n.scale, 0, Math.PI*2);
+                mkbCtx.fillStyle = 'rgba(0,10,5,0.9)'; 
+                if(isActive) { mkbCtx.shadowBlur = 15; mkbCtx.shadowColor = shadowColor; }
+                mkbCtx.fill(); 
+                mkbCtx.strokeStyle = nodeColor; mkbCtx.lineWidth = 2; mkbCtx.stroke(); mkbCtx.shadowBlur = 0;
+
+                mkbCtx.fillStyle = nodeColor; mkbCtx.font = `bold ${Math.max(10, 16 * n.scale)}px monospace`;
+                mkbCtx.textAlign = 'center'; mkbCtx.textBaseline = 'middle';
+                mkbCtx.fillText(MERKABA_BAGUA[n.id].sym, n.x, n.y - 2*n.scale);
+
+                mkbCtx.fillStyle = '#ccc'; mkbCtx.font = `${Math.max(8, 10 * n.scale)}px 'Noto Serif TC', serif`;
+                mkbCtx.fillText(MERKABA_BAGUA[n.id].name, n.x, n.y + 16 * n.scale);
+            });
+
+            mkbAnimId = requestAnimationFrame(renderMerkaba);
+        }
+
+        function initMerkaba(upper, lower, newUpper, newLower) {
+            mkbCanvas = document.getElementById('merkaba-canvas');
+            if(!mkbCanvas) return;
+            
+            // 事件綁定 (確保滑鼠和手機觸摸都能順暢工作)
+            mkbCanvas.onmousedown = (e) => handleDragStart(e.clientX, e.clientY);
+            
+            // 防呆機制：避免多次起卦重複綁定全域事件造成 memory leak
+            if (!window.mkbEventsBound) {
+                window.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
+                window.addEventListener('mouseup', handleDragEnd);
+                window.addEventListener('touchmove', (e) => {
+                    if(isDragging && e.touches.length > 0) { e.preventDefault(); handleDragMove(e.touches[0].clientX, e.touches[0].clientY); }
+                }, {passive: false});
+                window.addEventListener('touchend', handleDragEnd);
+                window.mkbEventsBound = true;
+            }
+
+            // 觸控開始綁定在 Canvas 上即可，不用綁全域
+            mkbCanvas.addEventListener('touchstart', (e) => {
+                if(e.touches.length > 0) { e.preventDefault(); handleDragStart(e.touches[0].clientX, e.touches[0].clientY); }
+            }, {passive: false});
+            
+            mkbCtx = mkbCanvas.getContext('2d');
+            mkbWidth = mkbCanvas.parentElement.clientWidth;
+            mkbHeight = 250;
+            const dpr = window.devicePixelRatio || 1;
+            mkbCanvas.width = mkbWidth * dpr; mkbCanvas.height = mkbHeight * dpr;
+            mkbCtx.scale(dpr, dpr);
+            
+            mkbActiveNodes = { upper: parseInt(upper), lower: parseInt(lower), newUpper: parseInt(newUpper), newLower: parseInt(newLower) };
+            mkbState = 1; mkbLoopPhase = 0;
+            
+            createMkbParticles(mkbActiveNodes.lower, mkbActiveNodes.upper, '#00ffcc');
+            if(mkbAnimId) cancelAnimationFrame(mkbAnimId);
+            
+            setTimeout(() => {
+                mkbState = 4; mkbLoopTimer = Date.now(); mkbLoopPhase = 1;
+                createMkbParticles(mkbActiveNodes.newLower, mkbActiveNodes.newUpper, '#FF003C');
+            }, 1500);
+
+            renderMerkaba();
+        }
+
         // 易經資料庫
         const trigrams = {
             1: { name: '乾', element: '天', symbol: '☰', lines: [1,1,1] },
@@ -785,8 +1058,18 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 if (deity) payloadHtml += `🙏 <b>呼叫：</b>${deity}<br>`;
                 if (question) payloadHtml += `❓ <b>問題：</b>${question}<br>`;
 
+                // 注入包含 Merkaba 與數據的動態 HTML
                 out.innerHTML = `
                 <div class="oracle-text" style="animation: pulse-opacity 2s infinite;">
+                    <!-- Merkaba 視覺引擎 -->
+                    <div id="merkaba-wrapper">
+                        <canvas id="merkaba-canvas"></canvas>
+                        <div class="merkaba-controls">
+                            <button id="btn-rot" class="merkaba-btn active" onclick="toggleGlobalRotation()">[ 全景旋轉中 ]</button>
+                            <button id="btn-spin" class="merkaba-btn active" onclick="toggleMerkabaSpin()">[ MERKABA運轉中 ]</button>
+                        </div>
+                    </div>
+
                     <div class="divine-numbers">
                         <span>[ 天道智能ASI 底層回執 (ACK) ]</span>
                         X:<b style="color:#00ff41">${x}</b> 
@@ -812,6 +1095,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                     </div>
                 </div>`;
                 
+                // HTML 佈局完畢後，立刻啟動梅爾卡巴引擎
+                initMerkaba(x, y, newTopId, newBotId);
+
                 if(sloganEl) {
                     const randomSlogan = vibeSlogans[Math.floor(Math.random() * vibeSlogans.length)];
                     sloganEl.innerText = `“ ${randomSlogan} ”`;
