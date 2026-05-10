@@ -7,32 +7,29 @@
     <!-- Noto Serif 字體 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
     <style>
-        /* 全局排版優化：解決手機端無法滑動與重疊的問題 */
         body { 
             font-family: 'Noto Serif TC', serif;
             background-color: #000;
             color: #00ff41;
-            /* 改為 column 排列，讓內容可以自然向下生長 */
             display: flex;
             flex-direction: column; 
             min-height: 100vh;
             margin: 0;
-            padding: 30px 15px; /* 上下左右保留安全距離 */
+            padding: 30px 15px; 
             box-sizing: border-box;
-            overflow-x: hidden; /* 隱藏橫向滾動 */
-            overflow-y: auto;   /* 允許整個網頁自然上下滑動 */
+            overflow-x: hidden; 
+            overflow-y: auto;   
         }
 
         #matrix {
-            position: fixed; /* 背景代碼雨固定在底層 */
+            position: fixed; 
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 0;
-            /* 效能優化：使用硬體加速 */
+            /* [效能極限優化] 移除 CSS filter drop-shadow，避免全屏硬體渲染崩潰 */
             transform: translateZ(0); 
-            filter: drop-shadow(0 0 2px rgba(0, 255, 65, 0.4));
         }
 
         .container { 
@@ -46,9 +43,9 @@
             box-shadow: 0 0 50px rgba(0, 255, 65, 0.15), inset 0 0 20px rgba(0, 255, 65, 0.1); 
             width: 100%;
             max-width: 500px; 
-            margin: auto; /* 當內容少時垂直居中，內容多時自動向下延展 */
+            margin: auto; 
             backdrop-filter: blur(12px);
-            display: block; /* 改為 block 避免內部元素被強制壓縮重疊 */
+            display: block; 
             box-sizing: border-box;
         }
 
@@ -126,7 +123,7 @@
             color: #00ff41;
             padding: 12px;
             font-family: monospace;
-            font-size: 16px; /* 防止 iOS 縮放 */
+            font-size: 16px; 
             border-radius: 2px;
             transition: all 0.3s ease;
             box-sizing: border-box;
@@ -186,12 +183,6 @@
 
         .oracle-text { width: 100%; }
 
-        @keyframes pulse-opacity {
-            0% { opacity: 1; }
-            50% { opacity: 0.8; }
-            100% { opacity: 1; }
-        }
-
         .divine-numbers {
             text-align: center;
             font-size: 28px;
@@ -234,7 +225,7 @@
         }
         .payload-box b { color: #00ff41; }
 
-        .btn-group { display: flex; gap: 10px; width: 100%; flex-direction: column; /* 預設手機上下排列 */ }
+        .btn-group { display: flex; gap: 10px; width: 100%; flex-direction: column; }
         .copy-btn {
             flex: 1;
             background: rgba(0, 40, 0, 0.8);
@@ -299,7 +290,6 @@
         .open-disclaimer-btn:hover { background: rgba(0, 255, 65, 0.1); color: #00ff41; border-color: #00ff41; }
         .license-tag { font-size: 10px; color: #1a5223; margin-top: 10px; font-family: monospace; text-align: center; }
 
-        /* 針對桌機/平板，按鈕變回左右並排 */
         @media (min-width: 481px) {
             .btn-group { flex-direction: row; }
         }
@@ -311,8 +301,8 @@
         }
         #merkaba-canvas {
             width: 100%; height: 260px; display: block; background: transparent;
-            cursor: grab; touch-action: none; /* 禁用瀏覽器默認滾動，允許手勢旋轉 */
-            transform: translateZ(0); /* 硬體加速，防止 GPU 負載過高崩潰 */
+            cursor: grab; touch-action: none; 
+            transform: translateZ(0); 
         }
         #merkaba-canvas:active { cursor: grabbing; }
         
@@ -325,8 +315,6 @@
             border: 1px dashed #FFD700; padding: 10px 5px; font-size: 11px;
             font-family: monospace; cursor: pointer; transition: all 0.2s;
             text-align: center; border-radius: 3px;
-            
-            /* 行動裝置防呆：防止連續點擊/雙擊造成縮放或選取 */
             touch-action: manipulation;
             -webkit-user-select: none;
             user-select: none;
@@ -386,8 +374,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 > - **上卦解碼：** 第一數[$X$] $\rightarrow$[卦名]（[象]）
 > - **下卦解碼：** 第二數[$Y$] $\rightarrow$ [卦名]（[象]）
 > - **本卦合成：**[上卦名] + [下卦名] =[正確本卦全稱，例如：巽為風]
-> - **變爻定位：** 第三數 [$Z$] $\rightarrow$ 定位第 [幾] 爻 $\rightarrow$ [陰/陽] 變[陽/陰]
-> - **變卦推導：** 翻轉後得到[新卦名，例如：坎為水]
+> - **變爻定位：** 第三數 [$Z$] $\rightarrow$ 定位第 [幾] 爻 $\rightarrow$ [陰/陽] 變 [陽/陰]
+> - **變卦推導：** 翻轉後得到 [新卦名，例如：坎為水]
 
 ### 【3.2b 變卦算法鎖】
 > 變卦只允許使用 **單爻陰陽翻轉法**： 
@@ -535,7 +523,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             <input type="text" id="question-input" class="vibe-input" placeholder="[推薦] 輸入當下之問題 / 執念" autocomplete="off">
         </div>
 
-        <!-- 確保 type="button" 以防止觸發任何表單提交的重整機制 -->
         <button type="button" id="action-btn" class="main-btn" onclick="generate()">發送 Request：強制坍縮波函數</button>
         
         <div id="output" class="result-box" style="display: none;">
@@ -571,7 +558,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 
         // 矩陣代碼雨
         const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d', { alpha: false }); // 優化效能
+        const ctx = canvas.getContext('2d', { alpha: false }); 
         const fontSize = 16; 
         const coreWords = "123456780☰☱☲☳☴☵☶☷XYZ一二三四五六七八九甲骨龜龍虎鹿豕魚鳥虫日月山水火土木金石人靈帝上神巫卜貞鼎爵乾兑离震巽坎艮坤天地水火雷风山泽元亨利貞吉咎厲龍馬牛豕狐虎舟車木吉晉明大有壯".split('');
         const numbers =["1", "2", "3", "4", "5", "6", "7", "8"];
@@ -579,6 +566,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         const charsArray =[...coreWords, ...numbers, ...hexagrams];
         
         let columns, drops, headChars;
+        // [效能極限優化]：背景啟停開關
+        let isMatrixRunning = true;
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -592,6 +581,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         resizeCanvas();
 
         function draw() {
+            // 如果顯示了神諭，背景矩陣就直接凍結（省下 50% 手機耗能）
+            if (!isMatrixRunning) return;
+
             ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.font = fontSize + "px 'Noto Serif TC', serif";
@@ -605,7 +597,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 const headText = charsArray[Math.floor(Math.random() * charsArray.length)];
                 headChars[i] = headText;
                 ctx.fillStyle = "#ffffff";
-                ctx.shadowBlur = 4; // 從8降低到4，減少GPU負載
+                ctx.shadowBlur = 4; // 減少耗能
                 ctx.shadowColor = "#ffffff";
                 ctx.fillText(headText, i * fontSize, drops[i] * fontSize);
                 ctx.shadowBlur = 0; 
@@ -675,7 +667,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         }
         fetchRealCount();
 
-        // --- MERKABA ENGINE (修復手機渲染效能崩潰) ---
+        // --- MERKABA ENGINE ---
         const MERKABA_BAGUA = {
             1: { name: '乾', sym: '☰', type: 'yang', pos:[ 1,  1,  1], color: '#FFD700' },
             2: { name: '兌', sym: '☱', type: 'yin',  pos:[ 1,  1, -1], color: '#00ffcc' },
@@ -743,7 +735,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 
                 ctx.beginPath(); ctx.arc(px, py, 3 * p1.scale, 0, Math.PI*2);
                 ctx.fillStyle = this.color;
-                // 效能優化：徹底移除高耗能的 shadowBlur，避免 60fps 刷新 30 顆粒子造成的 GPU 崩潰重整
                 ctx.fill(); 
             }
         }
@@ -858,7 +849,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 mkbCtx.beginPath(); mkbCtx.arc(n.x, n.y, (isActive ? 12 : 8) * n.scale, 0, Math.PI*2);
                 mkbCtx.fillStyle = 'rgba(0,10,5,0.9)'; 
                 
-                // 效能優化：降低陰影渲染層級
                 if(isActive) { mkbCtx.shadowBlur = 10; mkbCtx.shadowColor = shadowColor; }
                 
                 mkbCtx.fill(); 
@@ -899,7 +889,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             mkbWidth = mkbCanvas.parentElement.clientWidth;
             mkbHeight = 250;
             
-            // 效能極限優化：將手機超高解析度強制封頂在 2x，避免記憶體塞爆
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
             mkbCanvas.width = mkbWidth * dpr; mkbCanvas.height = mkbHeight * dpr;
             mkbCtx.scale(dpr, dpr);
@@ -998,6 +987,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 
             incrementRealCount();
 
+            // 確保每次重新生成時，背景矩陣會再次啟動
+            isMatrixRunning = true;
+
             btn.innerText = "[ Connecting to ASI... ]";
             btn.disabled = true;
             
@@ -1018,6 +1010,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 clearInterval(scrambleInterval); 
                 container.classList.remove('glitch-pixel-active'); 
                 
+                // [效能極限優化] 凍結背景矩陣運算，省下 50% 手機硬體資源
+                isMatrixRunning = false;
+
                 btn.innerText = "發送 Request：強制坍縮波函數";
                 btn.disabled = false;
 
@@ -1064,8 +1059,10 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 if (deity) payloadHtml += `🙏 <b>呼叫：</b>${deity}<br>`;
                 if (question) payloadHtml += `❓ <b>問題：</b>${question}<br>`;
 
+                // [效能極限優化]：移除外層 style="animation: pulse-opacity 2s infinite;"
+                // 這是導致手機 iOS Safari 崩潰的罪魁禍首
                 out.innerHTML = `
-                <div class="oracle-text" style="animation: pulse-opacity 2s infinite;">
+                <div class="oracle-text">
                     <div id="merkaba-wrapper">
                         <canvas id="merkaba-canvas"></canvas>
                         <div class="merkaba-controls">
@@ -1081,8 +1078,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                         Z:<b style="color:#00ff41">${z}</b>
                     </div>
 
-                    <div class="log-line">
-                        [進程] ${x}${top.symbol} + ${y}${bot.symbol} &rarr; ${hexName} | 第${z}爻坍縮 &rarr; ${changedHexName}
+                    <div class="log-line">[進程] ${x}${top.symbol} + ${y}${bot.symbol} &rarr; ${hexName} | 第${z}爻坍縮 &rarr; ${changedHexName}
                     </div>
 
                     <div class="payload-box">
