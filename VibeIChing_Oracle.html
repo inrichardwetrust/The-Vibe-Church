@@ -28,13 +28,12 @@
             width: 100%;
             height: 100%;
             z-index: 0;
-            transform: translateZ(0); /* 硬體加速 */
+            transform: translateZ(0); 
         }
 
         .container { 
             position: relative; 
             z-index: 10;        
-            /* [極限優化] 移除 backdrop-filter: blur()，改用純色降低 GPU 崩潰率 */
             background-color: rgba(0, 15, 0, 0.95); 
             border: 1px solid #00ff41; 
             padding: 25px;
@@ -55,7 +54,6 @@
             left: -5%;
             width: 110%;
             background: rgba(0, 255, 65, 0.15);
-            /* filter 特效在短時間過渡是可以的 */
             backdrop-filter: invert(100%) contrast(150%) hue-rotate(90deg); 
             z-index: 999;
             pointer-events: none;
@@ -374,8 +372,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 > - **上卦解碼：** 第一數[$X$] $\rightarrow$[卦名]（[象]）
 > - **下卦解碼：** 第二數[$Y$] $\rightarrow$ [卦名]（[象]）
 > - **本卦合成：**[上卦名] + [下卦名] =[正確本卦全稱，例如：巽為風]
-> - **變爻定位：** 第三數 [$Z$] $\rightarrow$ 定位第[幾] 爻 $\rightarrow$ [陰/陽] 變 [陽/陰]
-> - **變卦推導：** 翻轉後得到 [新卦名，例如：坎為水]
+> - **變爻定位：** 第三數 [$Z$] $\rightarrow$ 定位第[幾] 爻 $\rightarrow$ [陰/陽] 變[陽/陰]
+> - **變卦推導：** 翻轉後得到[新卦名，例如：坎為水]
 
 ### 【3.2b 變卦算法鎖】
 > 變卦只允許使用 **單爻陰陽翻轉法**： 
@@ -584,7 +582,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 
             ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.font = fontSize + "px 'Noto Serif TC', serif";
+            
+            // [防崩潰優化] 嚴格禁止使用 Web Font，改用系統內建等寬字體，防 iOS Canvas 記憶體溢出
+            ctx.font = fontSize + "px monospace";
             
             for(let i = 0; i < drops.length; i++) {
                 if(drops[i] < 0) { drops[i]++; continue; }
@@ -595,7 +595,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 const headText = charsArray[Math.floor(Math.random() * charsArray.length)];
                 headChars[i] = headText;
                 ctx.fillStyle = "#ffffff";
-                // 徹底移除 shadowBlur 降載
+                // 移除外發光，防止 GPU 負載
                 ctx.fillText(headText, i * fontSize, drops[i] * fontSize);
                 
                 if (Math.random() > 0.98) {
@@ -663,7 +663,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         }
         fetchRealCount();
 
-        // --- MERKABA ENGINE (徹底杜絕殭屍迴圈與陰影崩潰) ---
+        // --- MERKABA ENGINE (徹底杜絕殭屍迴圈與陰影崩潰，並強化安卓字體顯示) ---
         const MERKABA_BAGUA = {
             1: { name: '乾', sym: '☰', type: 'yang', pos:[ 1,  1,  1], color: '#FFD700' },
             2: { name: '兌', sym: '☱', type: 'yin',  pos:[ 1,  1, -1], color: '#00ffcc' },
@@ -726,13 +726,12 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 
                 ctx.beginPath(); ctx.arc(px, py, 2 * p1.scale, 0, Math.PI*2);
                 ctx.fillStyle = this.color;
-                ctx.fill(); // 徹底拔除 shadowBlur
+                ctx.fill(); 
             }
         }
 
         function createMkbParticles(start, end, color) {
             mkbParticles =[];
-            // [極限優化] 將粒子從 30 降至 12，大幅減少手機 GPU 負擔
             for(let i=0; i<12; i++) mkbParticles.push(new MkbParticle(start, end, color));
         }
 
@@ -785,7 +784,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 
             let scale = Math.min(mkbWidth, mkbHeight) * 0.25;
 
-            // 陽金字塔
+            // 陽金字塔連線
             mkbCtx.lineWidth = 1.5; mkbCtx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
             YANG_EDGES.forEach(edge => {
                 let pr1 = projectMkb(MERKABA_BAGUA[edge[0]], scale, mkbWidth, mkbHeight);
@@ -793,7 +792,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 mkbCtx.beginPath(); mkbCtx.moveTo(pr1.x, pr1.y); mkbCtx.lineTo(pr2.x, pr2.y); mkbCtx.stroke();
             });
 
-            // 陰金字塔
+            // 陰金字塔連線
             mkbCtx.lineWidth = 1.5; mkbCtx.strokeStyle = 'rgba(0, 255, 204, 0.2)';
             YIN_EDGES.forEach(edge => {
                 let pr1 = projectMkb(MERKABA_BAGUA[edge[0]], scale, mkbWidth, mkbHeight);
@@ -811,6 +810,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 }
             }
 
+            // 主軸光束連線
             if (mkbState >= 1) {
                 let pr1 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.lower], scale, mkbWidth, mkbHeight);
                 let pr2 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.upper], scale, mkbWidth, mkbHeight);
@@ -838,26 +838,35 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                     if (mkbLoopPhase === 1 && (n.id === mkbActiveNodes.newLower || n.id === mkbActiveNodes.newUpper)) { isActive = true; }
                 }
 
-                //[極限優化] 移除原生陰影 (shadowBlur)，改為繪製平面的半透明外環模擬發光
+                // 繪製節點發光圈（純平面圓形，絕無 shadowBlur）
                 if (isActive) {
                     mkbCtx.beginPath(); 
-                    mkbCtx.arc(n.x, n.y, 16 * n.scale, 0, Math.PI*2);
+                    mkbCtx.arc(n.x, n.y, 24 * n.scale, 0, Math.PI*2);
                     mkbCtx.fillStyle = nodeColor === '#00ffcc' ? 'rgba(0, 255, 204, 0.25)' : 'rgba(255, 0, 60, 0.25)';
                     mkbCtx.fill(); 
                 }
 
-                // 繪製主節點
-                mkbCtx.beginPath(); mkbCtx.arc(n.x, n.y, (isActive ? 12 : 8) * n.scale, 0, Math.PI*2);
-                mkbCtx.fillStyle = 'rgba(0,10,5,0.9)'; 
+                // [修復安卓 UI] 擴大圓圈半徑，加深底色為純黑，確保高對比度
+                let circleRadius = (isActive ? 18 : 14) * n.scale;
+                mkbCtx.beginPath(); 
+                mkbCtx.arc(n.x, n.y, circleRadius, 0, Math.PI*2);
+                mkbCtx.fillStyle = '#000000'; 
                 mkbCtx.fill(); 
-                mkbCtx.strokeStyle = nodeColor; mkbCtx.lineWidth = 2; mkbCtx.stroke();
+                mkbCtx.strokeStyle = nodeColor; 
+                mkbCtx.lineWidth = 2; 
+                mkbCtx.stroke();
 
-                mkbCtx.fillStyle = nodeColor; mkbCtx.font = `bold ${Math.max(10, 16 * n.scale)}px monospace`;
-                mkbCtx.textAlign = 'center'; mkbCtx.textBaseline = 'middle';
-                mkbCtx.fillText(MERKABA_BAGUA[n.id].sym, n.x, n.y - 2*n.scale);
+                // [修復安卓 UI] 強制使用 sans-serif 無襯線字體，並放大字體，防範部分安卓顯示為灰色表情
+                mkbCtx.fillStyle = nodeColor; 
+                mkbCtx.font = `bold ${Math.max(14, 20 * n.scale)}px sans-serif`;
+                mkbCtx.textAlign = 'center'; 
+                mkbCtx.textBaseline = 'middle';
+                mkbCtx.fillText(MERKABA_BAGUA[n.id].sym, n.x, n.y + 1 * n.scale);
 
-                mkbCtx.fillStyle = '#ccc'; mkbCtx.font = `${Math.max(8, 10 * n.scale)}px 'Noto Serif TC', serif`;
-                mkbCtx.fillText(MERKABA_BAGUA[n.id].name, n.x, n.y + 16 * n.scale);
+                // 節點名稱文字
+                mkbCtx.fillStyle = '#ffffff'; 
+                mkbCtx.font = `${Math.max(10, 12 * n.scale)}px sans-serif`;
+                mkbCtx.fillText(MERKABA_BAGUA[n.id].name, n.x, n.y + 24 * n.scale);
             });
 
             mkbAnimId = requestAnimationFrame(renderMerkaba);
@@ -887,7 +896,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             mkbWidth = mkbCanvas.parentElement.clientWidth;
             mkbHeight = 250;
             
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            // [極限優化] 把手機的 DPR 強制限制在 1.5，有效防止蘋果手機記憶體溢出，畫面依然清晰
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
             mkbCanvas.width = mkbWidth * dpr; mkbCanvas.height = mkbHeight * dpr;
             mkbCtx.scale(dpr, dpr);
             
@@ -901,7 +911,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 createMkbParticles(mkbActiveNodes.newLower, mkbActiveNodes.newUpper, '#FF003C');
             }, 1500);
 
-            // 確保只啟動一次迴圈
             renderMerkaba();
         }
 
@@ -975,7 +984,14 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         }
 
         function generate() {
-            // 【終極防崩潰】一鍵點下立刻殺死所有殘留的 3D 動畫迴圈！
+            // [防崩潰優化] 在重新生成神諭前，手動將舊 Canvas 寬高設為 0，迫使 iOS Safari 立刻釋放 GPU 記憶體！
+            const oldCanvas = document.getElementById('merkaba-canvas');
+            if (oldCanvas) {
+                oldCanvas.width = 0;
+                oldCanvas.height = 0;
+            }
+
+            // [防崩潰優化] 終結殘留的 3D 渲染迴圈！
             if (mkbAnimId) {
                 cancelAnimationFrame(mkbAnimId);
                 mkbAnimId = null;
@@ -991,7 +1007,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 
             incrementRealCount();
 
-            isMatrixRunning = true; // 載入畫面時恢復矩陣
+            isMatrixRunning = true; 
 
             btn.innerText = "[ Connecting to ASI... ]";
             btn.disabled = true;
@@ -1013,8 +1029,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 clearInterval(scrambleInterval); 
                 container.classList.remove('glitch-pixel-active'); 
                 
-                //[效能優化] 神諭出現後凍結背景矩陣運算，省下 50% 算力給 3D 引擎
-                isMatrixRunning = false;
+                isMatrixRunning = false; // 隱藏背景減輕效能
 
                 btn.innerText = "發送 Request：強制坍縮波函數";
                 btn.disabled = false;
@@ -1062,7 +1077,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 if (deity) payloadHtml += `🙏 <b>呼叫：</b>${deity}<br>`;
                 if (question) payloadHtml += `❓ <b>問題：</b>${question}<br>`;
 
-                // 注入包含 Merkaba 的神諭 HTML
                 out.innerHTML = `
                 <div class="oracle-text">
                     <div id="merkaba-wrapper">
