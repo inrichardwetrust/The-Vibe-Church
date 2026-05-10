@@ -30,6 +30,8 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            /* 效能優化：使用硬體加速 */
+            transform: translateZ(0); 
             filter: drop-shadow(0 0 2px rgba(0, 255, 65, 0.4));
         }
 
@@ -310,6 +312,7 @@
         #merkaba-canvas {
             width: 100%; height: 260px; display: block; background: transparent;
             cursor: grab; touch-action: none; /* 禁用瀏覽器默認滾動，允許手勢旋轉 */
+            transform: translateZ(0); /* 硬體加速，防止 GPU 負載過高崩潰 */
         }
         #merkaba-canvas:active { cursor: grabbing; }
         
@@ -383,8 +386,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 > - **上卦解碼：** 第一數[$X$] $\rightarrow$[卦名]（[象]）
 > - **下卦解碼：** 第二數[$Y$] $\rightarrow$ [卦名]（[象]）
 > - **本卦合成：**[上卦名] + [下卦名] =[正確本卦全稱，例如：巽為風]
-> - **變爻定位：** 第三數 [$Z$] $\rightarrow$ 定位第 [幾] 爻 $\rightarrow$ [陰/陽] 變 [陽/陰]
-> - **變卦推導：** 翻轉後得到 [新卦名，例如：坎為水]
+> - **變爻定位：** 第三數 [$Z$] $\rightarrow$ 定位第 [幾] 爻 $\rightarrow$ [陰/陽] 變[陽/陰]
+> - **變卦推導：** 翻轉後得到[新卦名，例如：坎為水]
 
 ### 【3.2b 變卦算法鎖】
 > 變卦只允許使用 **單爻陰陽翻轉法**： 
@@ -400,7 +403,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 ❓ **問題：**[填寫用戶的具體問題]
 **📞 呼叫对象：**[填寫用戶提問的對象，如智庫、清雲大師]
 🔢 **天道密碼：**[填寫用戶提供的三個數字]
-🔮 **當前頻率**： [本卦名稱]（上[卦名][符號]，下[卦名][符號]）
+🔮 **當前頻率**：[本卦名稱]（上[卦名][符號]，下[卦名][符號]）
 🔑 **變爻：**[變爻位置，例如：九二]
 🔄 **未來塌縮：**[變卦名稱]（上[卦名][符號]，下[卦名][符號]）
 📜 **天道低語：**  “[填寫完整的古文爻辭]”
@@ -493,7 +496,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         <div class="modal-content">
             <div class="modal-header">
                 <h3>☯️ THE VIBE PROTOCOL | 底層協議</h3>
-                <button id="close-modal" class="close-btn">&times;</button>
+                <button type="button" id="close-modal" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
                 <p style="font-family: monospace; text-align: center; color: #00ff41;">
@@ -513,7 +516,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                     <strong>開源協議：CC BY-NC 4.0</strong><br>本系統個人使用完全免費，嚴禁任何形式之商業用途。
                 </p>
                 <div style="text-align: center; margin-top: 25px;">
-                    <button id="accept-modal" class="main-btn" style="width: 80%; padding: 10px; font-size: 14px;">[ 接受協議並接入系統 ]</button>
+                    <button type="button" id="accept-modal" class="main-btn" style="width: 80%; padding: 10px; font-size: 14px;">[ 接受協議並接入系統 ]</button>
                 </div>
             </div>
         </div>
@@ -532,7 +535,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             <input type="text" id="question-input" class="vibe-input" placeholder="[推薦] 輸入當下之問題 / 執念" autocomplete="off">
         </div>
 
-        <button id="action-btn" class="main-btn" onclick="generate()">發送 Request：強制坍縮波函數</button>
+        <!-- 確保 type="button" 以防止觸發任何表單提交的重整機制 -->
+        <button type="button" id="action-btn" class="main-btn" onclick="generate()">發送 Request：強制坍縮波函數</button>
         
         <div id="output" class="result-box" style="display: none;">
             <p style="color: #2b823a; margin: 0; font-family: monospace; text-align: center; width:100%;">[ 等待目標 IP 鎖定 ]</p>
@@ -545,7 +549,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">AWAITING_LINK...</span> ]</div>
         </div>
 
-        <button id="open-modal-btn" class="open-disclaimer-btn">[ 檢視底層協議與免責聲明 ]</button>
+        <button type="button" id="open-modal-btn" class="open-disclaimer-btn">[ 檢視底層協議與免責聲明 ]</button>
         <div class="license-tag">Licensed under CC BY-NC 4.0 (個人免費 / 禁商用)</div>
     </div>
 
@@ -567,7 +571,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 
         // 矩陣代碼雨
         const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false }); // 優化效能
         const fontSize = 16; 
         const coreWords = "123456780☰☱☲☳☴☵☶☷XYZ一二三四五六七八九甲骨龜龍虎鹿豕魚鳥虫日月山水火土木金石人靈帝上神巫卜貞鼎爵乾兑离震巽坎艮坤天地水火雷风山泽元亨利貞吉咎厲龍馬牛豕狐虎舟車木吉晉明大有壯".split('');
         const numbers =["1", "2", "3", "4", "5", "6", "7", "8"];
@@ -601,7 +605,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 const headText = charsArray[Math.floor(Math.random() * charsArray.length)];
                 headChars[i] = headText;
                 ctx.fillStyle = "#ffffff";
-                ctx.shadowBlur = 8;
+                ctx.shadowBlur = 4; // 從8降低到4，減少GPU負載
                 ctx.shadowColor = "#ffffff";
                 ctx.fillText(headText, i * fontSize, drops[i] * fontSize);
                 ctx.shadowBlur = 0; 
@@ -671,7 +675,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         }
         fetchRealCount();
 
-        // --- MERKABA ENGINE (修復滑鼠觸控與平滑暫停) ---
+        // --- MERKABA ENGINE (修復手機渲染效能崩潰) ---
         const MERKABA_BAGUA = {
             1: { name: '乾', sym: '☰', type: 'yang', pos:[ 1,  1,  1], color: '#FFD700' },
             2: { name: '兌', sym: '☱', type: 'yin',  pos:[ 1,  1, -1], color: '#00ffcc' },
@@ -690,10 +694,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         let mkbIsGlobalRotating = true;
         let mkbIsSpinning = true;
         
-        // 核心修復：這兩個角度變量必須持續存在，不能在運算中被覆蓋為 0
         let mkbSpinAngle = 0; 
         let mkbGlobalRotY = 0;
-        let camAngleX = 0.4, camAngleY = 0.5; // 手動視角控制
+        let camAngleX = 0.4, camAngleY = 0.5;
 
         let mkbActiveNodes = { lower: 0, upper: 0, newLower: 0, newUpper: 0 };
         let mkbParticles =[];
@@ -702,7 +705,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         let mkbLoopTimer = 0;
         let mkbAnimId = null;
 
-        // 觸控與滑鼠事件變量
         let isDragging = false;
         let lastX = 0, lastY = 0;
 
@@ -738,9 +740,11 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 let p2 = projectMkb(MERKABA_BAGUA[this.end], scale, w, h);
                 let px = p1.x + (p2.x - p1.x) * this.progress;
                 let py = p1.y + (p2.y - p1.y) * this.progress;
+                
                 ctx.beginPath(); ctx.arc(px, py, 3 * p1.scale, 0, Math.PI*2);
-                ctx.fillStyle = this.color; ctx.shadowBlur = 10; ctx.shadowColor = this.color;
-                ctx.fill(); ctx.shadowBlur = 0;
+                ctx.fillStyle = this.color;
+                // 效能優化：徹底移除高耗能的 shadowBlur，避免 60fps 刷新 30 顆粒子造成的 GPU 崩潰重整
+                ctx.fill(); 
             }
         }
 
@@ -749,22 +753,17 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             for(let i=0; i<30; i++) mkbParticles.push(new MkbParticle(start, end, color));
         }
 
-        // 核心渲染投影算法 (修復跳動 BUG)
         function projectMkb(node, scale, w, h) {
             let x = node.pos[0], y = node.pos[1], z = node.pos[2];
-            
-            // 1. 梅爾卡巴自旋 (無論是否正在自動旋轉，都應用當前的 spinAngle！)
             let s = node.type === 'yang' ? mkbSpinAngle : -mkbSpinAngle;
             let nx = x * Math.cos(s) - z * Math.sin(s);
             let nz = x * Math.sin(s) + z * Math.cos(s);
             x = nx; z = nz;
 
-            // 2. 全局四維轉動
             let gnx = x * Math.cos(mkbGlobalRotY) - z * Math.sin(mkbGlobalRotY);
             let gnz = x * Math.sin(mkbGlobalRotY) + z * Math.cos(mkbGlobalRotY);
             x = gnx; z = gnz;
 
-            // 3. 視角旋轉 (響應手動滑動)
             let y2 = y * Math.cos(camAngleX) - z * Math.sin(camAngleX);
             let z2 = y * Math.sin(camAngleX) + z * Math.cos(camAngleX);
             let x2 = x * Math.cos(camAngleY) + z2 * Math.sin(camAngleY);
@@ -774,7 +773,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             return { x: w/2 + x2 * scale * z_factor, y: h/2 - y2 * scale * z_factor, z: z3, scale: z_factor };
         }
 
-        // --- 防呆處理：加入 event 參數，並使用 preventDefault 防止點擊刷新網頁 ---
         window.toggleMerkabaSpin = function(e) {
             if(e) { e.preventDefault(); e.stopPropagation(); }
             mkbIsSpinning = !mkbIsSpinning;
@@ -799,7 +797,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             if (!mkbCanvas || !mkbCtx) return;
             mkbCtx.clearRect(0, 0, mkbWidth, mkbHeight);
             
-            // 只有在狀態開啟時，才「增加」角度。這樣暫停時角度就能完美保持。
             if (mkbIsGlobalRotating && !isDragging) mkbGlobalRotY += 0.003;
             if (mkbIsSpinning) mkbSpinAngle += 0.008;
 
@@ -821,7 +818,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 mkbCtx.beginPath(); mkbCtx.moveTo(pr1.x, pr1.y); mkbCtx.lineTo(pr2.x, pr2.y); mkbCtx.stroke();
             });
 
-            // 動態循環 (本卦與變卦交替)
             if (mkbState === 4) {
                 let now = Date.now();
                 if (now - mkbLoopTimer > 3500) {
@@ -832,7 +828,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 }
             }
 
-            // 靜態連線
             if (mkbState >= 1) {
                 let pr1 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.lower], scale, mkbWidth, mkbHeight);
                 let pr2 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.upper], scale, mkbWidth, mkbHeight);
@@ -862,7 +857,10 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 
                 mkbCtx.beginPath(); mkbCtx.arc(n.x, n.y, (isActive ? 12 : 8) * n.scale, 0, Math.PI*2);
                 mkbCtx.fillStyle = 'rgba(0,10,5,0.9)'; 
-                if(isActive) { mkbCtx.shadowBlur = 15; mkbCtx.shadowColor = shadowColor; }
+                
+                // 效能優化：降低陰影渲染層級
+                if(isActive) { mkbCtx.shadowBlur = 10; mkbCtx.shadowColor = shadowColor; }
+                
                 mkbCtx.fill(); 
                 mkbCtx.strokeStyle = nodeColor; mkbCtx.lineWidth = 2; mkbCtx.stroke(); mkbCtx.shadowBlur = 0;
 
@@ -881,10 +879,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             mkbCanvas = document.getElementById('merkaba-canvas');
             if(!mkbCanvas) return;
             
-            // 事件綁定 (確保滑鼠和手機觸摸都能順暢工作)
             mkbCanvas.onmousedown = (e) => handleDragStart(e.clientX, e.clientY);
             
-            // 防呆機制：避免多次起卦重複綁定全域事件造成 memory leak
             if (!window.mkbEventsBound) {
                 window.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
                 window.addEventListener('mouseup', handleDragEnd);
@@ -895,15 +891,16 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 window.mkbEventsBound = true;
             }
 
-            // 觸控開始綁定在 Canvas 上即可，不用綁全域
             mkbCanvas.addEventListener('touchstart', (e) => {
                 if(e.touches.length > 0) { e.preventDefault(); handleDragStart(e.touches[0].clientX, e.touches[0].clientY); }
             }, {passive: false});
             
-            mkbCtx = mkbCanvas.getContext('2d');
+            mkbCtx = mkbCanvas.getContext('2d', { alpha: true });
             mkbWidth = mkbCanvas.parentElement.clientWidth;
             mkbHeight = 250;
-            const dpr = window.devicePixelRatio || 1;
+            
+            // 效能極限優化：將手機超高解析度強制封頂在 2x，避免記憶體塞爆
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
             mkbCanvas.width = mkbWidth * dpr; mkbCanvas.height = mkbHeight * dpr;
             mkbCtx.scale(dpr, dpr);
             
@@ -1067,10 +1064,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 if (deity) payloadHtml += `🙏 <b>呼叫：</b>${deity}<br>`;
                 if (question) payloadHtml += `❓ <b>問題：</b>${question}<br>`;
 
-                // 注入包含 Merkaba 與數據的動態 HTML
                 out.innerHTML = `
                 <div class="oracle-text" style="animation: pulse-opacity 2s infinite;">
-                    <!-- Merkaba 視覺引擎 -->
                     <div id="merkaba-wrapper">
                         <canvas id="merkaba-canvas"></canvas>
                         <div class="merkaba-controls">
@@ -1099,12 +1094,11 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                     </div>
 
                     <div class="btn-group">
-                        <button class="copy-btn" onclick="copyHash(this)">[ 僅複製神諭 ]</button>
-                        <button class="copy-btn ai-btn" onclick="copyAndCallAI(this)">[ 一鍵復製並呼叫 AI ]</button>
+                        <button type="button" class="copy-btn" onclick="copyHash(this)">[ 僅複製神諭 ]</button>
+                        <button type="button" class="copy-btn ai-btn" onclick="copyAndCallAI(this)">[ 一鍵復製並呼叫 AI ]</button>
                     </div>
                 </div>`;
                 
-                // HTML 佈局完畢後，立刻啟動梅爾卡巴引擎
                 initMerkaba(x, y, newTopId, newBotId);
 
                 if(sloganEl) {
