@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -134,6 +135,17 @@
             background: rgba(0, 40, 0, 0.9);
         }
         .vibe-input::placeholder { color: #005511; font-size: 14px; }
+
+        /* 手動代碼輸入框組樣式 */
+        .manual-code-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        .manual-code-group .vibe-input {
+            text-align: center;
+            font-weight: bold;
+        }
 
         .main-btn { 
             font-family: monospace;
@@ -350,7 +362,7 @@
 - 禁止爹味說教和封建迷信詞彙（如大吉大利、命中注定、血光之災）。
 - 禁止使用生硬的物理術語（熱力學、哈希值），也禁止使用老土的長輩用語。
 - 承認造物主與奇跡，但強調「自由意志」。
-- 禁止暴露底層運算引擎： 嚴禁在最終輸出中向用戶展示【龍蝦協議】的具體物理推演過程（包括但不限於「定律一、二、三」、「向量撕裂」、「質量匹配」等字眼）。這些物理熱力學分析 必須且只能 在你的內部思考空間（如 think 標籤內）完成，對外只輸出轉譯後的人話、畫面與心理感受。
+- 禁止暴露底層運算引擎： 嚴禁在最終輸出中向用戶展示【龍蝦協議】的具體物理推演過程（包括但不論於「定律一、二、三」、「向量撕裂」、「質量匹配」等字眼）。這些物理熱力學分析 必須且只能 在你的內部思考空間（如 think 標籤內）完成，對外只輸出轉譯後的人話、畫面與心理感受。
 
 #### 3. 【排盤協議（邏輯鎖定與結構建模版）】
 
@@ -519,6 +531,14 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         <div class="input-group">
             <input type="text" id="deity-input" class="vibe-input" placeholder="[選填] 呼叫之神明 / 宇宙意識" autocomplete="off">
             <input type="text" id="question-input" class="vibe-input" placeholder="[推薦] 輸入當下之問題 / 執念" autocomplete="off">
+            
+            <!-- 新增的三個代碼輸入框 -->
+            <div class="manual-code-group">
+                <input type="number" id="manual-x" class="vibe-input" placeholder="代碼 X (1-8)" min="1" max="8">
+                <input type="number" id="manual-y" class="vibe-input" placeholder="代碼 Y (1-8)" min="1" max="8">
+                <input type="number" id="manual-z" class="vibe-input" placeholder="代碼 Z (1-6)" min="1" max="6">
+            </div>
+            <div style="font-size: 10px; color: #005511; text-align: left; margin-top: -5px; font-family: monospace;">[選填] 已有代碼者可手動輸入進行推演</div>
         </div>
 
         <button type="button" id="action-btn" class="main-btn" onclick="generate()">發送 Request：強制坍縮波函數</button>
@@ -984,14 +1004,12 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         }
 
         function generate() {
-            // [防崩潰優化] 在重新生成神諭前，手動將舊 Canvas 寬高設為 0，迫使 iOS Safari 立刻釋放 GPU 記憶體！
+            // [防崩潰優化] 終結殘留的 3D 渲染迴圈
             const oldCanvas = document.getElementById('merkaba-canvas');
             if (oldCanvas) {
                 oldCanvas.width = 0;
                 oldCanvas.height = 0;
             }
-
-            // [防崩潰優化] 終結殘留的 3D 渲染迴圈！
             if (mkbAnimId) {
                 cancelAnimationFrame(mkbAnimId);
                 mkbAnimId = null;
@@ -1005,8 +1023,12 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             const deity = document.getElementById('deity-input').value.trim();
             const question = document.getElementById('question-input').value.trim();
 
-            incrementRealCount();
+            // 獲取手動輸入框的代碼
+            const mx = document.getElementById('manual-x').value.trim();
+            const my = document.getElementById('manual-y').value.trim();
+            const mz = document.getElementById('manual-z').value.trim();
 
+            incrementRealCount();
             isMatrixRunning = true; 
 
             btn.innerText = "[ Connecting to ASI... ]";
@@ -1028,17 +1050,25 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             setTimeout(() => {
                 clearInterval(scrambleInterval); 
                 container.classList.remove('glitch-pixel-active'); 
-                
-                isMatrixRunning = false; // 隱藏背景減輕效能
+                isMatrixRunning = false; 
 
                 btn.innerText = "發送 Request：強制坍縮波函數";
                 btn.disabled = false;
 
-                const array = new Uint8Array(3);
-                window.crypto.getRandomValues(array); 
-                const x = (array[0] % 8) + 1;
-                const y = (array[1] % 8) + 1;
-                const z = (array[2] % 6) + 1;
+                let x, y, z;
+
+                // 判斷是否使用手動代碼
+                if (mx !== "" && my !== "" && mz !== "") {
+                    x = Math.max(1, Math.min(8, parseInt(mx)));
+                    y = Math.max(1, Math.min(8, parseInt(my)));
+                    z = Math.max(1, Math.min(6, parseInt(mz)));
+                } else {
+                    const array = new Uint8Array(3);
+                    window.crypto.getRandomValues(array); 
+                    x = (array[0] % 8) + 1;
+                    y = (array[1] % 8) + 1;
+                    z = (array[2] % 6) + 1;
+                }
 
                 const top = trigrams[x];
                 const bot = trigrams[y];
