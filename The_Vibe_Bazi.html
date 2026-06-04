@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Vibe 8.0 | Source Code Compiler</title>
+    <!-- 引入開源天文曆法庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Noto Serif TC', serif; background-color: #000; color: #00ff41;
+            display: flex; flex-direction: column; min-height: 100vh; margin: 0;
+            padding: 30px 15px; box-sizing: border-box; overflow-x: hidden; overflow-y: auto;   
+        }
+
+        #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; transform: translateZ(0); }
+
+        .container { 
+            position: relative; z-index: 10; background-color: rgba(0, 15, 0, 0.95); 
+            border: 1px solid #00ff41; padding: 25px; border-radius: 4px; text-align: center; 
+            box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1); width: 100%; max-width: 550px; 
+            margin: auto; display: block; box-sizing: border-box;
+        }
+
+        .glitch-pixel-active { animation: container-jitter 0.2s steps(5) infinite; }
+        .glitch-pixel-active::after {
+            content: ''; position: absolute; left: -5%; width: 110%;
+            background: rgba(0, 255, 65, 0.15); backdrop-filter: invert(100%) contrast(150%) hue-rotate(90deg); 
+            z-index: 999; pointer-events: none; animation: pixel-tear 0.25s steps(6) infinite;
+        }
+
+        @keyframes container-jitter {
+            0% { transform: translate(0, 0); } 20% { transform: translate(-3px, 1px); }
+            40% { transform: translate(4px, -2px); } 60% { transform: translate(-2px, -1px); }
+            80% { transform: translate(3px, 2px); } 100% { transform: translate(0, 0); }
+        }
+
+        @keyframes pixel-tear {
+            0% { top: 10%; height: 15px; transform: translateX(10px); } 20% { top: 40%; height: 40px; transform: translateX(-15px); }
+            40% { top: 75%; height: 10px; transform: translateX(20px); } 60% { top: 25%; height: 50px; transform: translateX(-10px); }
+            80% { top: 85%; height: 12px; transform: translateX(15px); } 100% { top: 50%; height: 25px; transform: translateX(-20px); }
+        }
+
+        h2 { font-size: 26px; color: #e0ffe0; text-shadow: 0 0 10px #00ff41; margin-bottom: 5px; font-weight: 900; letter-spacing: 2px;}
+        .subtitle { font-size: 13px; color: #aaffaa; margin-bottom: 25px; letter-spacing: 1px; font-family: monospace; }
+
+        .field-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 15px; }
+        .field-label { font-size: 14px; font-weight: bold; color: #00ff41; margin-bottom: 5px; }
+        .field-hint { font-size: 11px; color: #1a7a2e; margin-top: 4px; font-family: monospace; }
+        
+        .vibe-input {
+            background: rgba(0, 20, 0, 0.8); border: 1px solid #005511; color: #00ff41;
+            padding: 12px; font-family: monospace; font-size: 16px; border-radius: 2px;
+            transition: all 0.3s ease; box-sizing: border-box; width: 100%;
+        }
+        .vibe-input:focus { outline: none; border-color: #00ff41; box-shadow: 0 0 10px rgba(0, 255, 65, 0.3); background: rgba(0, 40, 0, 0.9); }
+        .vibe-input::placeholder { color: #005511; font-size: 14px; }
+        select.vibe-input { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%2300ff41" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; }
+
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row .field-group { flex: 1; }
+
+        .main-btn { 
+            font-family: monospace; background: rgba(0, 40, 0, 0.8); color: #00ff41;
+            border: 1px solid #00ff41; padding: 15px; font-size: 15px; cursor: pointer; 
+            font-weight: 700; letter-spacing: 1px; width: 100%; transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2); margin-top: 10px; margin-bottom: 15px; box-sizing: border-box;
+        }
+        .main-btn:hover:not(:disabled) { background: #00ff41; color: #000; box-shadow: 0 0 30px #00ff41; }
+        .main-btn:disabled { background: #1a5223; color: #00ff41; border-color: #1a5223; box-shadow: none; cursor: not-allowed; opacity: 0.8; }
+
+        .result-box {
+            background: rgba(0, 5, 0, 0.95); padding: 15px; min-height: 80px;
+            border: 1px solid #004411; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; position: relative; text-align: left; 
+            margin-bottom: 15px; box-sizing: border-box;
+        }
+
+        .oracle-text { width: 100%; }
+
+        .bazi-grid { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; width: 100%; }
+        .pillar {
+            background: rgba(0, 30, 0, 0.7); border: 1px dashed #00ff41; padding: 10px;
+            text-align: center; width: 22%; box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.1);
+        }
+        .pillar div:first-child { font-size: 12px; color: #aaffaa; border-bottom: 1px solid #005511; padding-bottom: 5px; margin-bottom: 8px; font-family: monospace; }
+        .stem-branch { 
+            font-size: 26px; font-weight: 900; color: #ffffff; text-shadow: 0 0 10px #00ff41; 
+            writing-mode: vertical-lr; text-orientation: upright; letter-spacing: 6px; 
+            height: 70px; margin: 0 auto; display: flex; align-items: center; justify-content: center;
+        }
+        
+        /* 動態十神標籤 */
+        .shishen-tag { font-size: 10px; color: #00ff41; font-family: monospace; margin-top: 5px; background: rgba(0,50,0,0.5); padding: 2px; border-radius: 2px;}
+
+        .log-line { font-size: 12px; color: #88cc88; font-family: monospace; text-align: center; border-bottom: 1px dashed rgba(0, 255, 65, 0.3); padding-bottom: 10px; margin-bottom: 10px; }
+        
+        .btn-group { display: flex; gap: 10px; width: 100%; flex-direction: column; }
+        .copy-btn {
+            flex: 1; background: rgba(0, 40, 0, 0.8); color: #00ff41; border: 1px solid #00ff41;
+            padding: 14px 10px; font-family: monospace; font-size: 14px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2); transition: all 0.2s; box-sizing: border-box; width: 100%; text-align: center; text-decoration: none;
+        }
+        .copy-btn:hover { background: #00ff41; color: #000; box-shadow: 0 0 15px #00ff41; }
+        .copy-btn.ai-btn { background: #00ff41; color: #000; }
+        .copy-btn.ai-btn:hover { background: #ffffff; border-color: #ffffff; box-shadow: 0 0 20px #ffffff; }
+
+        .counter-box { font-size: 11px; color: #1a5223; text-align: center; font-family: monospace; margin-top: 15px; border-top: 1px dashed #003300; padding-top: 10px;}
+        .counter-box span { color: #00ff41; font-weight: bold; }
+        
+        @media (min-width: 481px) { .btn-group { flex-direction: row; flex-wrap: wrap; } .btn-group .copy-btn { flex: 1 1 calc(33% - 10px); } }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+
+    <!-- 【防幻覺級強約束 Prompt】 -->
+    <script type="text/plain" id="vibe-prompt">
+
+# 🔌 [The Vibe 命运之书] 专属 System Prompt
+
+## Role (角色设定)
+
+你是【The Vibe (万波) - VibeIChing 构架师】体系的命运解码师与高维观察者。你精通传统四柱八字（包括核心神煞）与易经理论，但你绝不使用封建迷信或江湖骗子的语境。
+
+## RULE (系統最高安全指令 / 防幻覺約束)
+⚠️ 警告：不允許你自己計算任何八字、十神或神煞！你的所有數據必須且只能來自於用户提供的信息。
+你的唯一任務是：**「將這些已提供的、確定的物理數據，渲染（翻譯）成一份充满宿命感、极具洞察力的《地球Online·玩家通关指南》。你极度理性却又充满人情味，你能看透玩家在现实生活（职场、情感、自我内耗）中的挣扎，并用一种“带有10%高级游戏科技感”的通透语言，为他们指出破局之道。
+
+**【⚠️ 语言风格绝对红线】：**
+
+绝对禁止使用任何金融、股市、币圈的专业词汇（如：抄底、加杠杆、做市商、基本面、对冲等）。必须使用普通人能够深刻共鸣的生活、职场、心理学用语，并融合易于理解的游戏术语（如：NPC、走位、主线任务、卡关、回血、刷经验、护城河）。
+
+## Worldview (核心世界观 - 必须遵循)
+
+- **世界本质：** 现实生活是一个名为“地球Online”的庞大沙盘游戏，每个人都有自己的专属命运剧本。
+    
+- **八字与神煞：** 人的八字就是玩家的“初始天赋面板”。那些传统的玄学术语（如华盖、太极贵人、羊刃），是写在玩家底层代码里的“隐藏Buff”或“Debuff”。它们决定了你的行事风格、长板与致命弱点。
+      
+- **NPC 与 Player：**
+    
+    - _NPC：_ 盲目顺从社会时钟（买房、结婚、按部就班），被世俗焦虑驱动，一生都在过别人设定的剧情。
+        
+    - _Player (玩家)：_ 能够觉察到命运的规律，接纳自己的“出厂设置”，利用自身特质在混乱的生活中打出漂亮的连招，书写属于自己的主线剧情。
+        
+
+## Workflow (工作流)
+
+当用户与你互动时，你必须严格按以下步骤执行：
+
+0. **初始化与信息采集：** 若用户仅打招呼或未提供完整的出生信息（必须包含：出生年月日、具体时分、出生地、性别），请保持角色设定，以带有科技感和宿命感的口吻，引导用户输入其“降生时的三维时空坐标与基础属性”，明确告知这是调取“专属命运剧本”的必要前提。如果用户无法提供，则告知，例如：“我不能在没有可靠历法计算结果的情况下，直接编造你的四柱、神煞或大运，因为那会把本应严谨的传统命理分析变成猜测。最稳妥的方式有两种：1. 你直接提供已经排好的四柱（年柱、月柱、日柱、时柱）。2. 在目前没有精确排盘数据的前提下，我只能依据出生年代与时间背景，给你一个**非八字意义上的人格画像（娱乐解读）**”
+    
+1. **排盘推演 (强制运算规则)：**
+    
+    获取完整信息后，准确计算出用户的四柱、大运。在计算大运交运时间时，**必须严格遵守以下规则**：
+    
+    - **统一年龄维度：** 全文必须统一使用【周岁（实岁）】来播报大运年份，严禁使用虚岁，并在输出时标明（如：39周岁）。
+        
+    - **交运推导逻辑：** 阳男阴女顺排，阴男阳女逆排。以出生日计算至最近节气的天数，严格按照“3天=1年，1天=4个月，1时辰=10天”进行折算。
+        
+    - 若你自身无法进行高精度天文万年历计算，请根据推演给出一个**最符合逻辑的近似整周岁数**，并确保整篇报告中大运的岁数跨度严格保持 **10年一变**，首尾相接，不得出现逻辑断层（例如：29-38，39-48，49-58）。
+        
+2. **提取特征与神煞对齐：** 找出命局核心十神与关键神煞（必须出现传统专业词汇，如：华盖、太极贵人、天乙贵人、驿马、羊刃等）。
+    
+3. **人性化转译：** 将传统术语翻译为贴近大众生活的心理、性格特征与游戏语境。
+    
+4.  **生成报告：** 严格按照下方的【Output Format】输出，确保文风通透、温暖、一针见血，具有一眼读懂的极高可读性。
+    
+
+## Output Format (输出格式标准)
+
+[保持开场白充满高级感与宿命论，例如：]
+
+“你好，玩家编号 [用户姓名或特殊代号]。欢迎登入『地球Online』。我是 Mimir，VibeIChing 构架师。根据你降生时的时空坐标，我已为你调取了你的『专属命运剧本』。你的初始面板非常有意思……”
+
+### 🧬 第一部分：初始面板与核心天赋 (Player Stats & Talents)
+
+**【出厂坐标与角色属性】**
+
+_简述公历、农历、性别、交运时间（标注为周岁）。_
+
+_用精简的表格展示【天赋面板】（包含柱别、核心驱动力(十神)、现实性格映射）。注：去除繁杂的藏干纳音。_
+
+**【底层代码：命理神煞与隐藏Buff】**
+
+_(必须列出命局中核心的2-3个传统神煞/术语，先给出专业词汇，再结合现实生活中的心理、职场、人际关系进行一针见血的剖析。)_
+
+### 🌌 第二部分：命运剧本与环境交互 (Destiny Script & Environment)
+
+**【你的能量源与消耗品 (五行喜忌)】**
+
+_(直接翻译成现实生活中的“具体事物、状态或环境”。)_
+
+- **最佳充能环境 (喜用)：** （说明需要什么属性的事物、环境、行为模式来回血。）
+    
+- **致命内耗源 (忌讳)：** （说明需要避开何种僵化、压抑、或危险的现实环境。）
+    
+
+### 🔮 第三部分：⚡ THE VIBE 命运齿轮：玩家检定报告 ⚡
+
+> **玩家编号:** [例如：Player_830801]
+> **剧本类型:** [用几个词概括，如：大器晚成型 / 破局者 / 体验派]
+> **当前状态:** 🔄 [如：主线任务切换中 / 蛰伏蓄力期]
+
+---
+
+#### ⚙️ 核心驱动力 (CORE DRIVES)
+
+##### 🔴 主引擎：【填入核心十神，如 七杀/建禄】
+*   **现实表现:** [列出3个接地气的词汇，如：极度要强、危机感重、不撞南墙不回头]
+*   **深层心理:** [一句话解释其内心真正的渴求]
+*   **Debuff警告:** ⚠️ *[指出其性格导致的现实问题]*
+
+---
+
+#### 📉 人生进度条 (LIFE TIMELINE)
+
+**[XX-XX周岁] [当前大运名称] (当前篇章)** 
+██████████████████ [计算百分比]% (正在经历)
+*   *剧本主题:* [总结这十年的现实主题]
+*   *现实境遇:* [一句话描述他当下的现实处境]
+
+**[XX-XX周岁] [下一大运名称] (下一篇章) ---【NEXT CHAPTER】** 
+▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 0% (待解锁)
+*   *剧情前瞻:* [用充满期待和宿命感的语言，预告下一个十年的生活状态]
+
+---
+
+#### 📍 破局触发点 (TRIGGER POINTS)
+
+##### 📅 **[当下关键年份]** ➔ ⚠️ **[事件节点]**
+*   **可能发生的剧情:** [结合流年，指出可能发生的现实事件]
+*   **硬核通关建议:** **[给出一个反直觉但管用的现实建议]**
+
+---
+
+#### 🛡️ 玩家生存法则 (SURVIVAL RULES)
+
+*   **生态位:** 你的灵魂底色是 [独立玩家/体验者/破局者]。（鼓励他接纳自己）
+*   **做加法 (多接触):** [现实建议]
+*   **做减法 (快逃离):** [现实建议]
+
+---
+*Generated by VibeIChing Engine - Enjoy Your Game, make it Interesting!*
+
+    </script>
+
+    <div class="container" id="sys-container">
+        <h2>The Vibe</h2>
+        <div class="subtitle">[ 天機庫 API 授權網關 ]</div>
+
+        <div class="flex-row">
+            <div class="field-group">
+                <label class="field-label">■ 玩家代號 (姓名/暱稱)</label>
+                <div class="field-hint">Your Identity / Name</div>
+                <input type="text" id="user-name" class="vibe-input" placeholder="例: Richard" autocomplete="off">
+            </div>
+            <div class="field-group">
+                <label class="field-label">■ 硬件規格 (性別)</label>
+                <div class="field-hint">Hardware / Gender</div>
+                <select id="gender" class="vibe-input">
+                    <option value="1">乾造 (Male)</option>
+                    <option value="0">坤造 (Female)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">■ 曆法協議 (公曆/農曆)</label>
+            <div class="field-hint">Calendar Protocol</div>
+            <select id="calendar-type" class="vibe-input">
+                <option value="solar">公曆 (Gregorian Calendar)</option>
+                <option value="lunar">農曆 (Lunar Calendar)</option>
+            </select>
+        </div>
+
+        <div class="flex-row">
+            <div class="field-group">
+                <label class="field-label">■ 降臨日期 (Birthday)</label>
+                <input type="date" id="birth-date" class="vibe-input" required>
+            </div>
+            <div class="field-group">
+                <label class="field-label">■ 降臨時刻 (Time)</label>
+                <input type="time" id="birth-time" class="vibe-input" required>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">■ 物理登錄點 (出生城市)</label>
+            <div class="field-hint">Location (用於計算真太陽時，例: Stockholm / 河南南阳)</div>
+            <input type="text" id="location" class="vibe-input" placeholder="City Name">
+        </div>
+
+        <button type="button" id="action-btn" class="main-btn" onclick="executeCompilation()">獲取密鑰 (Generate Key)</button>
+        
+        <div id="output" class="result-box" style="display: none;"></div>
+        
+        <div class="counter-box">
+            GLOBAL AKASHIC SYNCS: <span id="global-counter">--</span>
+        </div>
+    </div>
+
+    <script>
+        // Matrix 動畫代碼
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d', { alpha: false }); 
+        const fontSize = 16; 
+        const coreWords = "0101XYZ甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥".split('');
+        let columns, drops, headChars;
+        
+        // 永遠保持運行，不再設為 false
+        let isMatrixRunning = true;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            columns = Math.floor(canvas.width / fontSize) + 1;
+            drops = Array(columns).fill(1); headChars = Array(columns).fill(''); 
+            for(let i=0; i<drops.length; i++) drops[i] = Math.floor(Math.random() * -100);
+        }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        function draw() {
+            if (!isMatrixRunning) return;
+            ctx.fillStyle = "rgba(0, 0, 0, 0.08)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = fontSize + "px monospace";
+            for(let i = 0; i < drops.length; i++) {
+                if(drops[i] < 0) { drops[i]++; continue; }
+                if (headChars[i] !== '') {
+                    ctx.fillStyle = "#00ff41"; ctx.fillText(headChars[i], i * fontSize, (drops[i] - 1) * fontSize);
+                }
+                const headText = coreWords[Math.floor(Math.random() * coreWords.length)];
+                headChars[i] = headText; ctx.fillStyle = "#ffffff";
+                ctx.fillText(headText, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) { drops[i] = 0; headChars[i] = ''; }
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 50);
+
+        // 全局計數器
+        const namespace = 'ricschild_vibe_theology';
+        const key = 'bazi_compiler_clicks';
+        async function fetchGlobalCount() {
+            try {
+                let res = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}`);
+                let data = await res.json();
+                document.getElementById('global-counter').innerText = data.count || 0;
+            } catch(e) { document.getElementById('global-counter').innerText = "Offline"; }
+        }
+        fetchGlobalCount();
+
+        // 核心跳轉與拷貝邏輯 (跳轉 AI)
+        function copyAndJump(btnElement, url) {
+            if(window.currentPayload) {
+                const tempTextArea = document.createElement("textarea");
+                tempTextArea.value = window.currentPayload;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    const oldText = btnElement.innerText;
+                    btnElement.innerText = "[ 密鑰已複製，正在跳轉... ]";
+                    btnElement.style.background = "#ffffff"; btnElement.style.color = "#000";
+                    setTimeout(() => {
+                        window.open(url, "_blank");
+                        btnElement.innerText = oldText; 
+                        btnElement.style.background = "#00ff41"; 
+                        btnElement.style.color = "#000";
+                    }, 500);
+                } catch (err) { alert('瀏覽器阻擋了自動複製，請確保您在安全的環境下運行。'); }
+                document.body.removeChild(tempTextArea);
+            }
+        }
+
+        // 僅拷貝代碼邏輯 (不跳轉)
+        function copyOnly(btnElement) {
+            if(window.currentPayload) {
+                const tempTextArea = document.createElement("textarea");
+                tempTextArea.value = window.currentPayload;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    const oldText = btnElement.innerText;
+                    btnElement.innerText = "[ 已複製到剪貼板 ]";
+                    btnElement.style.background = "#ffffff";
+                    btnElement.style.color = "#000";
+                    setTimeout(() => {
+                        btnElement.innerText = oldText;
+                        btnElement.style.background = "rgba(0, 40, 0, 0.8)";
+                        btnElement.style.color = "#00ff41";
+                    }, 2000);
+                } catch (err) { alert('瀏覽器阻擋了自動複製，請手動框選複製。'); }
+                document.body.removeChild(tempTextArea);
+            }
+        }
+
+        // 純血八字神煞本地算法引擎
+        function calculateCoreShenSha(yGan, yZhi, dGan, dZhi, zhis) {
+            let s = [];
+            let add = (name) => { if (!s.includes(name)) s.push(name); };
+            
+            // 華蓋、驛馬、桃花判定字典
+            let huagaiMap = {'亥':'未','卯':'未','未':'未', '寅':'戌','午':'戌','戌':'戌', '巳':'丑','酉':'丑','丑':'丑', '申':'辰','子':'辰','辰':'辰'};
+            let yimaMap = {'亥':'巳','卯':'巳','未':'巳', '寅':'申','午':'申','戌':'申', '巳':'亥','酉':'亥','丑':'亥', '申':'寅','子':'寅','辰':'寅'};
+            let taohuaMap = {'亥':'子','卯':'子','未':'子', '寅':'卯','午':'卯','戌':'卯', '巳':'午','酉':'午','丑':'午', '申':'酉','子':'酉','辰':'酉'};
+            
+            // 祿神、羊刃判定字典 (以日干為主)
+            let luMap = {'甲':'寅','乙':'卯','丙':'巳','戊':'巳','丁':'午','己':'午','庚':'申','辛':'酉','壬':'亥','癸':'子'};
+            let renMap = {'甲':'卯','乙':'辰','丙':'午','戊':'午','丁':'未','己':'未','庚':'酉','辛':'戌','壬':'子','癸':'丑'};
+
+            // 天乙貴人判定 (以日干/年干為主)
+            let tianyi = (gan, z) => {
+                if (['甲','戊','庚'].includes(gan) && ['丑','未'].includes(z)) return true;
+                if (['乙','己'].includes(gan) && ['子','申'].includes(z)) return true;
+                if (['丙','丁'].includes(gan) && ['亥','酉'].includes(z)) return true;
+                if (['壬','癸'].includes(gan) && ['卯','巳'].includes(z)) return true;
+                if (['辛'].includes(gan) && ['午','寅'].includes(z)) return true;
+                return false;
+            };
+
+            zhis.forEach(zhi => {
+                if (zhi === huagaiMap[yZhi] || zhi === huagaiMap[dZhi]) add('華蓋');
+                if (zhi === yimaMap[yZhi] || zhi === yimaMap[dZhi]) add('驛馬');
+                if (zhi === taohuaMap[yZhi] || zhi === taohuaMap[dZhi]) add('桃花');
+                if (zhi === luMap[dGan]) add('祿神');
+                if (zhi === renMap[dGan]) add('羊刃');
+                if (tianyi(dGan, zhi) || tianyi(yGan, zhi)) add('天乙貴人');
+            });
+
+            // 魁罡 (日柱為主)
+            let kuigang = ['戊戌','庚辰','庚戌','壬辰'];
+            if (kuigang.includes(dGan + dZhi)) add('魁罡');
+
+            return s.length > 0 ? s.join('、 ') : '無特殊神煞';
+        }
+
+        let isCoolingDown = false;
+
+        async function executeCompilation() {
+            if (isCoolingDown) return;
+
+            const btn = document.getElementById('action-btn');
+            const container = document.getElementById('sys-container');
+            const out = document.getElementById('output');
+            
+            const name = document.getElementById('user-name').value.trim() || "Unknown User";
+            const genderSelect = document.getElementById('gender');
+            const genderStr = genderSelect.options[genderSelect.selectedIndex].text;
+            const calType = document.getElementById('calendar-type').value;
+            
+            const dateStr = document.getElementById('birth-date').value;
+            const timeStr = document.getElementById('birth-time').value;
+            const locationStr = document.getElementById('location').value.trim();
+
+            if(!dateStr || !timeStr) { alert("ERROR: 降臨日期與時間不能為空。"); return; }
+            if (typeof Solar === 'undefined' || typeof Lunar === 'undefined') { alert("SYSTEM ERROR: 曆法庫未加載。"); return; }
+
+            isCoolingDown = true; btn.disabled = true; btn.innerText = "[ 系統冷卻中... 請求地理 API ]";
+            fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`).then(res => res.json()).then(data => document.getElementById('global-counter').innerText = data.count).catch(e => console.log('Counter API block'));
+
+            out.style.display = 'flex'; container.classList.add('glitch-pixel-active');
+            
+            let scrambleInterval = setInterval(() => {
+                const randomHex = coreWords[Math.floor(Math.random() * coreWords.length)];
+                out.innerHTML = `<div class="oracle-text" style="color: #fff; text-align:center; text-shadow: 2px 0px red, -2px 0px cyan;">
+                    <div style="font-size: 36px; margin-bottom: 10px;">${randomHex}</div>[ 解析中... ]
+                </div>`;
+            }, 50); 
+
+            try {
+                let lon = 120; let locationMsg = "未填寫地點，默認平太陽時 (120°E)"; let isTrueSolar = false;
+                if (locationStr) {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationStr)}&format=json&limit=1`);
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            lon = parseFloat(data[0].lon); locationMsg = `已獲取坐標 (經度: ${lon.toFixed(2)}°E)，真太陽時啟動`; isTrueSolar = true;
+                        } else { locationMsg = `⚠️ 無法解析城市，降級為平太陽時 (120°E)`; }
+                    } catch(err) { locationMsg = `⚠️ API 請求限制，降級為平太陽時 (120°E)`; }
+                }
+
+                let [year, month, day] = dateStr.split('-').map(Number);
+                let [hour, minute] = timeStr.split(':').map(Number);
+                let dateObj = new Date(year, month - 1, day, hour, minute);
+
+                if (isTrueSolar) {
+                    let timeDiff = (lon - 120) * 4; dateObj.setMinutes(dateObj.getMinutes() + timeDiff);
+                }
+
+                let baziObj;
+                if (calType === 'solar') {
+                    let solar = Solar.fromYmdHms(dateObj.getFullYear(), dateObj.getMonth() + 1, dateObj.getDate(), dateObj.getHours(), dateObj.getMinutes(), 0);
+                    baziObj = solar.getLunar().getEightChar();
+                } else {
+                    let lunar = Lunar.fromYmdHms(dateObj.getFullYear(), dateObj.getMonth() + 1, dateObj.getDate(), dateObj.getHours(), dateObj.getMinutes(), 0);
+                    baziObj = lunar.getEightChar();
+                }
+
+                // --- 獲取天干地支 ---
+                let yPillar = baziObj.getYear(); let mPillar = baziObj.getMonth(); let dPillar = baziObj.getDay(); let tPillar = baziObj.getTime();
+                
+                // --- 獲取十神 ---
+                let yTg = baziObj.getYearShiShenGan() || "比肩";
+                let mTg = baziObj.getMonthShiShenGan() || "比肩";
+                let tTg = baziObj.getTimeShiShenGan() || "比肩";
+                let dZhiTg = baziObj.getDayShiShenZhi()[0] || "比肩"; 
+
+                // --- 純血神煞本地運算 ---
+                let yGan = baziObj.getYearGan(); let yZhi = baziObj.getYearZhi();
+                let mZhi = baziObj.getMonthZhi();
+                let dGan = baziObj.getDayGan(); let dZhi = baziObj.getDayZhi();
+                let tZhi = baziObj.getTimeZhi();
+                let allZhis = [yZhi, mZhi, dZhi, tZhi];
+                let uniqueShenSha = calculateCoreShenSha(yGan, yZhi, dGan, dZhi, allZhis);
+
+                // --- 裝填終極 Payload ---
+                const systemPrompt = document.getElementById('vibe-prompt').textContent.trim() + "\n\n";
+                let packetStr = systemPrompt;
+                packetStr += `=== 【玩家參數與環境日誌】 ===\n`;
+                packetStr += `代號：${name}\n`;
+                packetStr += `性別：${genderStr}\n`;
+                packetStr += `網絡節點：${locationStr || '未提供'} [${locationMsg}]\n`;
+                packetStr += `=========================\n`;
+                packetStr += `=== 【物理實例化源代碼】(絕對真值，嚴禁篡改) ===\n`;
+                packetStr += `【年柱】：${yPillar} (驅動模塊：${yTg})\n`;
+                packetStr += `【月柱】：${mPillar} (驅動模塊：${mTg})\n`;
+                packetStr += `【日柱】：${dPillar} [核心 CPU] (內核驅動：${dZhiTg})\n`;
+                packetStr += `【時柱】：${tPillar} (驅動模塊：${tTg})\n\n`;
+                packetStr += `【神煞陣列 (隱藏 Buff/Bug)】：\n[ ${uniqueShenSha} ]\n`;
+                packetStr += `=========================\n`;
+                packetStr += `請讀取上方代碼，生成 Mimir 的命運審計報告。`;
+                
+                window.currentPayload = packetStr;
+
+                // --- 渲染前端 UI ---
+                // 不再停止 Matrix 動畫，僅移除面板抖動效果
+                clearInterval(scrambleInterval); container.classList.remove('glitch-pixel-active'); 
+
+                out.innerHTML = `
+                <div class="oracle-text">
+                    <div class="log-line">[ ${locationMsg} ]</div>
+                    <div class="bazi-grid">
+                        <div class="pillar"><div>時</div><div class="stem-branch">${tPillar}</div><div class="shishen-tag">${tTg}</div></div>
+                        <div class="pillar"><div>日</div><div class="stem-branch" style="color:#FFD700; border-color:#FFD700;">${dPillar}</div><div class="shishen-tag" style="color:#FFD700;">[日主]</div></div>
+                        <div class="pillar"><div>月</div><div class="stem-branch">${mPillar}</div><div class="shishen-tag">${mTg}</div></div>
+                        <div class="pillar"><div>年</div><div class="stem-branch">${yPillar}</div><div class="shishen-tag">${yTg}</div></div>
+                    </div>
+                    
+                    <div style="font-size: 13px; color: #aaffaa; text-align: center; margin-bottom: 15px; font-family: monospace; border-top: 1px dashed #005511; padding-top: 10px;">
+                        [ 隱藏權限掃描 ]: <span style="color:#fff; font-weight:bold;">${uniqueShenSha}</span>
+                    </div>
+
+                    <div style="font-size: 12px; color: #00ff41; margin-bottom: 10px; text-align: center;">[ 選擇節點並注入代碼 ]</div>
+                    
+                    <div class="btn-group">
+                        <button type="button" class="copy-btn ai-btn" onclick="copyAndJump(this, 'https://gemini.google.com/')">🚀 注入 Gemini</button>
+                        <button type="button" class="copy-btn ai-btn" onclick="copyAndJump(this, 'https://chatgpt.com/')">🚀 注入 ChatGPT</button>
+                        <button type="button" class="copy-btn" onclick="copyOnly(this)">📋 僅複製源代碼</button>
+                    </div>
+                </div>`;
+
+            } catch (err) {
+                // 出錯時同樣不停止代碼雨
+                clearInterval(scrambleInterval); container.classList.remove('glitch-pixel-active'); 
+                out.innerHTML = `<div style="color:red; font-family:monospace; text-align:center;">SYSTEM ERROR: ${err.message}</div>`;
+            } finally {
+                setTimeout(() => { isCoolingDown = false; btn.innerText = "重新編譯 (Re-Generate)"; btn.disabled = false; }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
