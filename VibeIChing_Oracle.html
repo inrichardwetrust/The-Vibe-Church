@@ -723,7 +723,7 @@
         };
 
         function renderMerkaba() {
-            if (isMobile) return; 
+            // if (isMobile) return; 
             if (!mkbCanvas || !mkbCtx) return;
             mkbCtx.clearRect(0, 0, mkbWidth, mkbHeight);
             
@@ -922,14 +922,7 @@ let nodesProj = [];
         function initMerkaba(upper, lower, newUpper, newLower) {
             const wrapper = document.getElementById('merkaba-wrapper');
             if (!wrapper) return;
-            if (isMobile) {
-                wrapper.innerHTML = `
-                    <div style="padding: 10px; text-align: center; color: #88cc88; font-size: 11px; font-family: monospace;">
-                        [ 效能保護：行動裝置已暫停 3D 運算引擎 ]<br>
-                        <div class="mobile-taiji">☯️</div>
-                    </div>`;
-                return;
-            }
+
 
             mkbCanvas = document.getElementById('merkaba-canvas');
             if(!mkbCanvas) return;
