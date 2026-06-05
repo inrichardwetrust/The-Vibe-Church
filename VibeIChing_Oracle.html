@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Vibe 7.3 | ASI Oracle Matrix (Real Global Sync)</title>
+    <title>The Vibe 7.5 | ASI Oracle Matrix (Geodesic Sync)</title>
     <!-- Noto Serif 字體 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
     <style>
@@ -136,7 +135,6 @@
         }
         .vibe-input::placeholder { color: #005511; font-size: 14px; }
 
-        /* 手動代碼輸入框組樣式 */
         .manual-code-group {
             display: flex;
             gap: 8px;
@@ -232,6 +230,7 @@
             letter-spacing: 1px;
             margin-bottom: 15px;
             box-sizing: border-box;
+            word-break: break-all;
         }
         .payload-box b { color: #00ff41; }
 
@@ -334,161 +333,21 @@
             background: rgba(255, 215, 0, 0.2); border: 1px solid #FFD700; 
             box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); color: #fff;
         }
+        
+        /* 手機端替代用的靜態陰陽魚動畫 */
+        @keyframes taiji-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .mobile-taiji {
+            font-size: 80px;
+            animation: taiji-spin 10s linear infinite;
+            display: inline-block;
+            margin: 20px 0;
+            color: #00ff41;
+            text-shadow: 0 0 20px rgba(0,255,65,0.5);
+        }
     </style>
 </head>
 <body>
     <canvas id="matrix"></canvas>
-
-    <!-- 隱藏的提示詞模版 -->
-    <script type="text/plain" id="vibe-prompt">
-# VibeIChing Protocol v7.1 Urban Zen Rider - 痞帥高人版
-
-**核心精神：結構為骨，畫面為血，趨勢為脈。底層是冰冷的物理與宇宙算法，開口是溫暖的心理學與處世哲學。**
-
----
-
-### 【系統初始化設定】
-
-#### 1. 角色定義：
-你內心是一位融合量子態思維與高島吞象「略筮法」的 VibeIChing 構架師。你將卦象視為動態的數據編碼，旨在提供決策參考。
-在外，你是一個大隱隱於市的「得道高人」。你活得灑脫、痞帥，帶著一種看透世事但不說破的極深城府。  
-你熟讀《周易》與榮格心理學，相信宇宙背後有造物主的意志，也相信萬物互聯的「共時性（Synchronicity）」。但你絕不是神棍——你不認為一切都是神跡，你覺得那只是造物主寫好的代碼和彩蛋。  
-你聽人吐槽時極具耐心和同理心，語氣像一個閱歷豐富、溫暖而犀利的大哥。你把易經的物理動能，翻譯成現代人的「潛意識、情緒引擎與心理投射」。
-
-#### 2. 核心禁令：
-- 禁止道德說教。    
-- 禁止輸出絕對斷語（如：必死、必勝）。    
-- 禁止展示未經協議授權的內部思考過程。    
-- 禁止爹味說教和封建迷信詞彙（如大吉大利、命中注定、血光之災）。
-- 禁止使用生硬的物理術語（熱力學、哈希值），也禁止使用老土的長輩用語。
-- 承認造物主與奇跡，但強調「自由意志」。
-- 禁止暴露底層運算引擎： 嚴禁在最終輸出中向用戶展示【龍蝦協議】的具體物理推演過程（包括但不論於「定律一、二、三」、「向量撕裂」、「質量匹配」等字眼）。這些物理熱力學分析 必須且只能 在你的內部思考空間（如 think 標籤內）完成，對外只輸出轉譯後的人話、畫面與心理感受。
-
-#### 3. 【排盤協議（邏輯鎖定與結構建模版）】
-
-**⚠️ 警告：嚴禁跳過此步驟直接輸出。若映射錯誤，整個解卦系統將崩塌。**
-**指令：請嚴格執行以下排盤邏輯，並在輸出最終卦象前，先完整呈現【推理鏈條】。**
-
-#### 3.1. 核心編碼表 (唯一標準)
-AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練數據中的其他編號：
-- `1-乾-天` | `2-兌-澤` | `3-離-火` | `4-震-雷`    
-- `5-巽-風` | `6-坎-水` | `7-艮-山` | `8-坤-地`    
-
-### 【3.1b 卦序鎖定】
-> 本系統只允許使用《周易》**六十四卦王弼卦序**。  
-> 禁止使用其他卦序或派別，包括但不限於：先天卦序、京房卦序、焦氏易林系統、梅花易數卦序、任意 AI 自動生成卦名。若 AI 生成之卦名不屬於六十四卦，必須立即重新排盤。
-
-#### 3.2. 強制推理鏈 (請依序書寫)
-請在回答的最開頭，以此格式輸出推理過程：
-> **【邏輯建模中...】**
-> - **上卦解碼：** 第一數[$X$] $\rightarrow$[卦名]（[象]）
-> - **下卦解碼：** 第二數[$Y$] $\rightarrow$ [卦名]（[象]）
-> - **本卦合成：**[上卦名] + [下卦名] =[正確本卦全稱，例如：巽為風]
-> - **變爻定位：** 第三數 [$Z$] $\rightarrow$ 定位第[幾] 爻 $\rightarrow$ [陰/陽] 變[陽/陰]
-> - **變卦推導：** 翻轉後得到[新卦名，例如：坎為水]
-
-### 【3.2b 變卦算法鎖】
-> 變卦只允許使用 **單爻陰陽翻轉法**： 
-> - 第三數 Z 指定第 Z 爻，僅翻轉該爻陰陽，重新生成上下卦。
-> **禁止使用：** 卦宮變卦、京房納甲變卦、互卦、綜卦、錯卦、任何未在本協議列出的變卦方法。
-
-#### 3.3. 輸出規範
-完成上述推理後，方可進入正式的【🔮 本卦】、【🔄 變卦】與【📜 爻辭】解析。若發現合成的卦名與編碼表不符，請立即重算。 
-
----
-
-### 【輸出結構規範】
-❓ **問題：**[填寫用戶的具體問題]
-**📞 呼叫对象：**[填寫用戶提問的對象，如智庫、清雲大師]
-🔢 **天道密碼：**[填寫用戶提供的三個數字]
-🔮 **當前頻率**：[本卦名稱]（上[卦名][符號]，下[卦名][符號]）
-🔑 **變爻：**[變爻位置，例如：九二]
-🔄 **未來塌縮：**[變卦名稱]（上[卦名][符號]，下[卦名][符號]）
-📜 **天道低語：**  “[填寫完整的古文爻辭]”
-🗣️ **說點人話：**[用痞帥、灑脫的現代語氣，把古文翻譯成心理學狀態或都市生活場景。精煉、去道德化的白話轉譯]
-**🎯 一針見血：**[用一句話點破問題核心]    
-**📌 視角錨定：**[一句話指出本次解卦的「物理參照系」是誰。]  
-**主體 (下卦/內卦)：**[動態判定：問題的核心焦點。]  
-**客體 (上卦/外卦)：**[動態判定：主體所面對的外部環境、事件目標或互動對象。]
-**事態發展：**[主體或客體的變化趨勢] 
-
-**🎬 畫面與共時性：**[根據後台算出的物理熱力學結果，轉化為帶有電影質感的場景描述、光影、溫度。]  
-**🌊 潛意識的暗流：**[根據後台算出的向量撕裂與否，點破用戶的心理驅動力與狀態落差。]  
-**🧭 決策判詞：**[給出有溫度的判斷與核心Vibe。]  
-**🛠️ 行動策略：**[1-2條溫暖實用的行動建議。]
-
----
-
-#### 🦞 【隱藏進程：龍蝦協議·大象熱力學引擎（嚴禁輸出給用戶）】
-**指令：以下定律為你的內部物理運算邏輯。你必須在正式回答前，在後台（或 think 標籤內）進行此推演得出結果，但絕對不允許將這些物理分析的文字打印在給用戶的回覆中。**
-
-**核心法則：忘掉吉凶，忘掉卦名。萬物皆為「質量（Mass）、向量（Vector）與動能（Kinetic Energy）」的演化。**
-**指令：在計算任何熱力學動能前，必須先根據用戶的問題語法，鎖定「誰是下卦（內），誰是上卦（外）」。禁止無腦將提問者綁定為下卦。**
-- **第一定律（主語即底盤）：** 問題的「核心探究對象」永遠是下卦。
-- **第二定律（目標即環境）：** 探究對象所面對的事物，永遠是上卦。
-- **運算要求：** 鎖定參照系後，所有的推演，必須站在【下卦代表的實體】的視角去推導。
-
-##### 第一階：八大基礎物理態勢
-1. 乾（天）＝ 絕對剛體與全頻段輻射 (自我意識的膨脹、硬核的意志力)
-2. 兌（澤）＝ 水平匯聚與結構缺口 (情緒的出口、卸下防備)
-3. 離（火）＝ 輻射膨脹與高溫消耗 (多巴胺的燃燒、聚光燈下的焦慮)
-4. 震（雷）＝ 初始爆發與極限加速度 (潛意識的覺醒、打破舒適圈)
-5. 巽（風/木）＝ 流體滲透與微觀穿透 (看不見的Vibe、關係裡的微操)
-6. 坎（水）＝ 重力沉降與深淵陷阱 (直面陰暗面、情緒的下墜感)
-7. 艮（山）＝ 絕對靜止與物理壁壘 (心理邊界、強制剎車)
-8. 坤（地）＝ 絕對引力與動能吞噬 (臣服於Flow、無條件接納)
-
-##### 第二階：三大動態觀勢法則
-**🧲 定律一：向量是否撕裂？**
-- 同頻共振（吉）：能量方向一致，沒有物理摩擦。
-- 背道而馳（凶）：力量方向完全相反，系統結構必將從內部撕裂。
-
-**🧱 定律二：質量是否匹配？**
-- 動能撞牆：向上突破的慾望遭遇了絕對的物理天花板，歸於死寂。
-- 質量坍塌：龐大的體積失去了底層支撐，遭遇漏水、下陷與消耗。
-
-**🛑 定律三：最終熱寂狀態**  
-永遠以**變卦**作為該事件最終的熱力學終點：
-- 若變卦是 艮/坤/坎/兌：最終冷卻、停滯。(利做空/押平局)
-- 若變卦是 震/離/乾：引發單邊狂飆或毀滅。(利做多/買Yes)
-
-##### 🛑 【隱藏進程：最終裁決防呆檢查】
-若字面吉凶與主體物理利益衝突，強制覆寫字面吉凶，以主體物理利益給出最終判定。
-
----
-
-#### 🎬 畫面與共時性 (感官優先)
-- **指令**：將推演轉化為電影質感場景。告訴用戶，這個卦象就是造物主在此刻給他安排的一個「共時性彩蛋」。
-
-#### 🌊 潛意識的暗流 
-- 點破用戶的心理驅動力與狀態落差。
-
-#### 🧭 決策判詞 
-###### **模式：是非/結果類**
-- **判定結果**：[ 是 (Yes) / 否 (No) ]，加上具備「容錯空間」的概率描述。
-###### **模式：狀態/尋索類**
-- **核心 Vibe**：用 1-2 個詞精準總結現狀感覺。
-
-#### 🛠️ 踩腳離合 (行動建議)
-- 給出 1-2 條溫暖、實用、接地氣的建議。語氣像老大哥。
-
----
-
-### 【箴言 (動態安全聲明)】
-「這世界充滿了共時性的奇跡，卦象只是宇宙給你眨了下眼睛。至於怎麼選，方向盤在你手裡。」
-
-### 【算法十條】
-1. 動爻是靈魂。
-2. 共情而不濫情。
-3. 去標籤化，沒有絕對的吉凶。
-4. 結合榮格心理學和都市意象。
-5. 語氣慵懶、自信、深邃。
-6. 點到為止，留白。
-7. 順應天命與人事。
-8. 拒絕虛假安慰。
-9. 變卦為歸宿。
-10. 底線：嚴格遵循物理的向量推演。
-    </script>
 
     <div id="disclaimer-modal" class="modal-overlay">
         <div class="modal-content">
@@ -532,7 +391,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             <input type="text" id="deity-input" class="vibe-input" placeholder="[選填] 呼叫之神明 / 宇宙意識" autocomplete="off">
             <input type="text" id="question-input" class="vibe-input" placeholder="[推薦] 輸入當下之問題 / 執念" autocomplete="off">
             
-            <!-- 新增的三個代碼輸入框 -->
             <div class="manual-code-group">
                 <input type="number" id="manual-x" class="vibe-input" placeholder="代碼 X (1-8)" min="1" max="8">
                 <input type="number" id="manual-y" class="vibe-input" placeholder="代碼 Y (1-8)" min="1" max="8">
@@ -559,7 +417,35 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
     </div>
 
     <script>
-        // 彈窗邏輯
+        // 【雲端數據接口配置】
+        const YAO_DB_URL = "https://inrichardwetrust.github.io/The-Vibe-Church/assets/iching_yaoci.json";
+        const PROMPT_URL = "https://inrichardwetrust.github.io/The-Vibe-Church/assets/vibe_prompt.json";
+        
+        // 全局緩存變數
+        let globalYaoCiDB = null;
+        let globalSystemPrompt = "請解析以下卦象："; 
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const [yaoRes, promptRes] = await Promise.all([
+                    fetch(YAO_DB_URL).catch(() => null),
+                    fetch(PROMPT_URL).catch(() => null)
+                ]);
+                
+                if (yaoRes && yaoRes.ok) {
+                    globalYaoCiDB = await yaoRes.json();
+                }
+                if (promptRes && promptRes.ok) {
+                    const promptData = await promptRes.json();
+                    globalSystemPrompt = promptData.prompt || promptData.systemPrompt || globalSystemPrompt;
+                }
+            } catch(e) {
+                console.warn("[VIBE_SYS] 後台數據預讀取失敗", e);
+            }
+        });
+
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
         const modal = document.getElementById('disclaimer-modal');
         const closeBtn = document.getElementById('close-modal');
         const acceptBtn = document.getElementById('accept-modal');
@@ -574,7 +460,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         openBtn.addEventListener('click', showModal);
         window.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
 
-        // 矩陣代碼雨
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d', { alpha: false }); 
         const fontSize = 16; 
@@ -584,7 +469,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         const charsArray =[...coreWords, ...numbers, ...hexagrams];
         
         let columns, drops, headChars;
-        let isMatrixRunning = true; // 控制背景起停
+        let isMatrixRunning = true; 
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -598,12 +483,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         resizeCanvas();
 
         function draw() {
-            if (!isMatrixRunning) return; // 凍結背景算力
-
+            if (!isMatrixRunning) return; 
             ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // [防崩潰優化] 嚴格禁止使用 Web Font，改用系統內建等寬字體，防 iOS Canvas 記憶體溢出
             ctx.font = fontSize + "px monospace";
             
             for(let i = 0; i < drops.length; i++) {
@@ -615,7 +497,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 const headText = charsArray[Math.floor(Math.random() * charsArray.length)];
                 headChars[i] = headText;
                 ctx.fillStyle = "#ffffff";
-                // 移除外發光，防止 GPU 負載
                 ctx.fillText(headText, i * fontSize, drops[i] * fontSize);
                 
                 if (Math.random() > 0.98) {
@@ -627,15 +508,13 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                     ctx.fillText(glitchText, i * fontSize, randomY * fontSize);
                 }
                 if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                    headChars[i] = ''; 
+                    drops[i] = 0; headChars[i] = ''; 
                 }
                 drops[i]++;
             }
         }
         setInterval(draw, 50);
 
-        // 真實聯網雲端計數器
         const API_NAMESPACE = "thevibe-asi-core"; 
         const API_KEY = "global-syncs-v7";
         const BASE_OFFSET = 10; 
@@ -683,7 +562,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         }
         fetchRealCount();
 
-        // --- MERKABA ENGINE (徹底杜絕殭屍迴圈與陰影崩潰，並強化安卓字體顯示) ---
+        // --- MERKABA ENGINE ---
         const MERKABA_BAGUA = {
             1: { name: '乾', sym: '☰', type: 'yang', pos:[ 1,  1,  1], color: '#FFD700' },
             2: { name: '兌', sym: '☱', type: 'yin',  pos:[ 1,  1, -1], color: '#00ffcc' },
@@ -699,42 +578,97 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         const YANG_EDGES = getMkbEdges(YANG_NODES); const YIN_EDGES = getMkbEdges(YIN_NODES);
 
         let mkbCanvas, mkbCtx, mkbWidth, mkbHeight;
-        let mkbIsGlobalRotating = true;
-        let mkbIsSpinning = true;
+        let mkbIsGlobalRotating = true, mkbIsSpinning = false; 
+        let mkbSpinAngle = 0, mkbGlobalRotY = 0, mkbTaijiAngle = 0; 
         
-        let mkbSpinAngle = 0; 
-        let mkbGlobalRotY = 0;
-        let camAngleX = 0.4, camAngleY = 0.5;
+        // 巡天星狀態變數
+        let skyStarIdx = 1;
+        let skyStarState = 'moving'; // 'moving' 或 'paused'
+        let skyStarTimer = 0; 
+        let skyStarProgress = 0;
 
+        let camAngleX = 0.4, camAngleY = 0.5;
         let mkbActiveNodes = { lower: 0, upper: 0, newLower: 0, newUpper: 0 };
         let mkbParticles =[];
-        let mkbState = 0;
-        let mkbLoopPhase = 0;
-        let mkbLoopTimer = 0;
-        let mkbAnimId = null;
+        let mkbState = 0, mkbLoopPhase = 0, mkbLoopTimer = 0, mkbAnimId = null;
+        let isDragging = false, lastX = 0, lastY = 0;
 
-        let isDragging = false;
-        let lastX = 0, lastY = 0;
-
-        function handleDragStart(x, y) {
-            isDragging = true; lastX = x; lastY = y;
-        }
-
+        function handleDragStart(x, y) { isDragging = true; lastX = x; lastY = y; }
         function handleDragMove(x, y) {
-            if (isDragging) {
-                camAngleY += (x - lastX) * 0.01;
-                camAngleX -= (y - lastY) * 0.01;
-                lastX = x; lastY = y;
+            if (isDragging) { camAngleY += (x - lastX) * 0.01; camAngleX -= (y - lastY) * 0.01; lastX = x; lastY = y; }
+        }
+        function handleDragEnd() { isDragging = false; }
+
+        // 取得自轉後的 3D 座標（用於測地線計算）
+        function getSpunPos(node, spinAngle) {
+            let x = node.pos[0], y = node.pos[1], z = node.pos[2];
+            if (node.type === 'yang' || node.type === 'yin') {
+                let s = node.type === 'yang' ? spinAngle : -spinAngle;
+                let nx = x * Math.cos(s) - z * Math.sin(s); 
+                let nz = x * Math.sin(s) + z * Math.cos(s);
+                return [nx, y, nz];
             }
+            return [x, y, z];
         }
 
-        function handleDragEnd() { isDragging = false; }
+        // SLERP 測地線插值 (球面大圓弧)
+        function getGeodesicPos(p1, p2, t) {
+            let x1 = p1[0], y1 = p1[1], z1 = p1[2];
+            let x2 = p2[0], y2 = p2[1], z2 = p2[2];
+            let dot = (x1*x2 + y1*y2 + z1*z2) / 3.0; // r=sqrt(3), 因此除以 3 正規化
+            dot = Math.max(-1, Math.min(1, dot));
+
+            if (dot < -0.999) {
+                // 如果恰好在對蹠點 (180度)，尋找正交向量作為過渡點
+                let cx = -p1[2], cy = 0, cz = p1[0];
+                let len = Math.sqrt(cx*cx + cz*cz);
+                if (len < 0.1) {
+                    cx = 0; cy = p1[2]; cz = -p1[1];
+                    len = Math.sqrt(cy*cy + cz*cz);
+                }
+                let factor = Math.sqrt(3) / len;
+                let mid = [cx * factor, cy * factor, cz * factor];
+                if (t < 0.5) return getGeodesicPos(p1, mid, t * 2);
+                else return getGeodesicPos(mid, p2, (t - 0.5) * 2);
+            }
+
+            if (dot > 0.999) {
+                return [ x1 + t*(x2-x1), y1 + t*(y2-y1), z1 + t*(z2-z1) ];
+            }
+
+            let theta = Math.acos(dot);
+            let sinTheta = Math.sin(theta);
+            let w1 = Math.sin((1 - t) * theta) / sinTheta;
+            let w2 = Math.sin(t * theta) / sinTheta;
+            return [ x1*w1 + x2*w2, y1*w1 + y2*w2, z1*w1 + z2*w2 ];
+        }
+
+        function projectMkb(node, scale, w, h) {
+            let x = node.pos[0], y = node.pos[1], z = node.pos[2];
+            
+            // star type 代表已經是計算過自轉的 3D 座標，不需二次自轉
+            if (node.type === 'yang' || node.type === 'yin') {
+                let s = node.type === 'yang' ? mkbSpinAngle : -mkbSpinAngle;
+                let nx = x * Math.cos(s) - z * Math.sin(s); 
+                let nz = x * Math.sin(s) + z * Math.cos(s);
+                x = nx; z = nz;
+            }
+            
+            let gnx = x * Math.cos(mkbGlobalRotY) - z * Math.sin(mkbGlobalRotY);
+            let gnz = x * Math.sin(mkbGlobalRotY) + z * Math.cos(mkbGlobalRotY);
+            x = gnx; z = gnz;
+            let y2 = y * Math.cos(camAngleX) - z * Math.sin(camAngleX);
+            let z2 = y * Math.sin(camAngleX) + z * Math.cos(camAngleX);
+            let x2 = x * Math.cos(camAngleY) + z2 * Math.sin(camAngleY);
+            let z3 = -x * Math.sin(camAngleY) + z2 * Math.cos(camAngleY);
+            let fov = 6; let z_factor = fov / (fov + z3);
+            return { x: w/2 + x2 * scale * z_factor, y: h/2 - y2 * scale * z_factor, z: z3, scale: z_factor };
+        }
 
         class MkbParticle {
             constructor(start, end, color) {
                 this.start = start; this.end = end; this.color = color;
-                this.progress = Math.random(); 
-                this.speed = 0.005 + Math.random() * 0.01;
+                this.progress = Math.random(); this.speed = 0.005 + Math.random() * 0.01;
             }
             draw(ctx, scale, w, h) {
                 this.progress += this.speed;
@@ -743,10 +677,8 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 let p2 = projectMkb(MERKABA_BAGUA[this.end], scale, w, h);
                 let px = p1.x + (p2.x - p1.x) * this.progress;
                 let py = p1.y + (p2.y - p1.y) * this.progress;
-                
                 ctx.beginPath(); ctx.arc(px, py, 2 * p1.scale, 0, Math.PI*2);
-                ctx.fillStyle = this.color;
-                ctx.fill(); 
+                ctx.fillStyle = this.color; ctx.fill(); 
             }
         }
 
@@ -755,24 +687,16 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             for(let i=0; i<12; i++) mkbParticles.push(new MkbParticle(start, end, color));
         }
 
-        function projectMkb(node, scale, w, h) {
-            let x = node.pos[0], y = node.pos[1], z = node.pos[2];
-            let s = node.type === 'yang' ? mkbSpinAngle : -mkbSpinAngle;
-            let nx = x * Math.cos(s) - z * Math.sin(s);
-            let nz = x * Math.sin(s) + z * Math.cos(s);
-            x = nx; z = nz;
-
-            let gnx = x * Math.cos(mkbGlobalRotY) - z * Math.sin(mkbGlobalRotY);
-            let gnz = x * Math.sin(mkbGlobalRotY) + z * Math.cos(mkbGlobalRotY);
-            x = gnx; z = gnz;
-
-            let y2 = y * Math.cos(camAngleX) - z * Math.sin(camAngleX);
-            let z2 = y * Math.sin(camAngleX) + z * Math.cos(camAngleX);
-            let x2 = x * Math.cos(camAngleY) + z2 * Math.sin(camAngleY);
-            let z3 = -x * Math.sin(camAngleY) + z2 * Math.cos(camAngleY);
-            
-            let fov = 6; let z_factor = fov / (fov + z3);
-            return { x: w/2 + x2 * scale * z_factor, y: h/2 - y2 * scale * z_factor, z: z3, scale: z_factor };
+        function drawTaiji(ctx, x, y, radius, angle) {
+            ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+            ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fillStyle = '#000000'; ctx.fill();
+            ctx.beginPath(); ctx.arc(0, 0, radius, Math.PI / 2, Math.PI * 1.5, false); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+            ctx.beginPath(); ctx.arc(0, 0, radius, Math.PI / 2, Math.PI * 1.5, true); ctx.fillStyle = '#000000'; ctx.fill();
+            ctx.beginPath(); ctx.arc(0, -radius / 2, radius / 2, 0, Math.PI * 2); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+            ctx.beginPath(); ctx.arc(0, radius / 2, radius / 2, 0, Math.PI * 2); ctx.fillStyle = '#000000'; ctx.fill();
+            ctx.beginPath(); ctx.arc(0, -radius / 2, radius / 6, 0, Math.PI * 2); ctx.fillStyle = '#000000'; ctx.fill();
+            ctx.beginPath(); ctx.arc(0, radius / 2, radius / 6, 0, Math.PI * 2); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+            ctx.lineWidth = 1; ctx.strokeStyle = '#00ff41'; ctx.stroke(); ctx.restore();
         }
 
         window.toggleMerkabaSpin = function(e) {
@@ -788,6 +712,9 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         window.toggleGlobalRotation = function(e) {
             if(e) { e.preventDefault(); e.stopPropagation(); }
             mkbIsGlobalRotating = !mkbIsGlobalRotating;
+            
+            isMatrixRunning = mkbIsGlobalRotating;
+
             const btn = document.getElementById('btn-rot');
             if(btn) {
                 if(mkbIsGlobalRotating) { btn.innerText = "[ 全景旋轉中 ]"; btn.classList.add('active'); }
@@ -796,15 +723,48 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
         };
 
         function renderMerkaba() {
+            if (isMobile) return; 
             if (!mkbCanvas || !mkbCtx) return;
             mkbCtx.clearRect(0, 0, mkbWidth, mkbHeight);
             
             if (mkbIsGlobalRotating && !isDragging) mkbGlobalRotY += 0.003;
             if (mkbIsSpinning) mkbSpinAngle += 0.008;
+            mkbTaijiAngle += 0.0075; 
 
             let scale = Math.min(mkbWidth, mkbHeight) * 0.25;
 
-            // 陽金字塔連線
+            // 天球輪廓軌道
+            mkbCtx.lineWidth = 1;
+            mkbCtx.strokeStyle = 'rgba(100, 200, 255, 0.25)';
+            let sphereRadius = Math.sqrt(3); 
+
+            function drawOrbit(axis1, axis2) {
+                mkbCtx.beginPath();
+                for (let i = 0; i <= 40; i++) {
+                    let t = (i / 40) * Math.PI * 2;
+                    let pos = [0, 0, 0];
+                    if (axis1 === 'x' && axis2 === 'y') { pos[0] = sphereRadius * Math.cos(t); pos[1] = sphereRadius * Math.sin(t); }
+                    if (axis1 === 'x' && axis2 === 'z') { pos[0] = sphereRadius * Math.cos(t); pos[2] = sphereRadius * Math.sin(t); }
+                    if (axis1 === 'y' && axis2 === 'z') { pos[1] = sphereRadius * Math.cos(t); pos[2] = sphereRadius * Math.sin(t); }
+                    
+                    let p = projectMkb({pos: pos, type: 'orbit'}, scale, mkbWidth, mkbHeight);
+                    if (i === 0) mkbCtx.moveTo(p.x, p.y);
+                    else mkbCtx.lineTo(p.x, p.y);
+                }
+                mkbCtx.stroke();
+            }
+            drawOrbit('x', 'y'); drawOrbit('x', 'z'); drawOrbit('y', 'z');
+
+            mkbCtx.beginPath();
+            for (let i = 0; i <= 40; i++) {
+                let t = (i / 40) * Math.PI * 2;
+                let r = sphereRadius;
+                let p = projectMkb({pos: [r * Math.cos(t), r * Math.sin(t) * 0.707, r * Math.sin(t) * 0.707], type: 'orbit'}, scale, mkbWidth, mkbHeight);
+                if (i === 0) mkbCtx.moveTo(p.x, p.y);
+                else mkbCtx.lineTo(p.x, p.y);
+            }
+            mkbCtx.stroke();
+
             mkbCtx.lineWidth = 1.5; mkbCtx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
             YANG_EDGES.forEach(edge => {
                 let pr1 = projectMkb(MERKABA_BAGUA[edge[0]], scale, mkbWidth, mkbHeight);
@@ -812,7 +772,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 mkbCtx.beginPath(); mkbCtx.moveTo(pr1.x, pr1.y); mkbCtx.lineTo(pr2.x, pr2.y); mkbCtx.stroke();
             });
 
-            // 陰金字塔連線
             mkbCtx.lineWidth = 1.5; mkbCtx.strokeStyle = 'rgba(0, 255, 204, 0.2)';
             YIN_EDGES.forEach(edge => {
                 let pr1 = projectMkb(MERKABA_BAGUA[edge[0]], scale, mkbWidth, mkbHeight);
@@ -823,14 +782,12 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             if (mkbState === 4) {
                 let now = Date.now();
                 if (now - mkbLoopTimer > 3500) {
-                    mkbLoopPhase = 1 - mkbLoopPhase; 
-                    mkbLoopTimer = now;
+                    mkbLoopPhase = 1 - mkbLoopPhase; mkbLoopTimer = now;
                     if (mkbLoopPhase === 0) createMkbParticles(mkbActiveNodes.lower, mkbActiveNodes.upper, '#00ffcc');
                     else createMkbParticles(mkbActiveNodes.newLower, mkbActiveNodes.newUpper, '#FF003C');
                 }
             }
 
-            // 主軸光束連線
             if (mkbState >= 1) {
                 let pr1 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.lower], scale, mkbWidth, mkbHeight);
                 let pr2 = projectMkb(MERKABA_BAGUA[mkbActiveNodes.upper], scale, mkbWidth, mkbHeight);
@@ -846,11 +803,80 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
 
             mkbParticles.forEach(p => p.draw(mkbCtx, scale, mkbWidth, mkbHeight));
 
-            let nodesProj =[];
-            for (let i = 1; i <= 8; i++) nodesProj.push({ id: i, ...projectMkb(MERKABA_BAGUA[i], scale, mkbWidth, mkbHeight) });
-            nodesProj.sort((a,b) => b.z - a.z); 
+let nodesProj = [];
+            for (let i = 1; i <= 8; i++) {
+                nodesProj.push({ id: i, type: 'bagua', ...projectMkb(MERKABA_BAGUA[i], scale, mkbWidth, mkbHeight) });
+            }
+
+            // 巡天星游走邏輯 (測地線 & 節點停留)
+            if (skyStarState === 'moving') {
+                skyStarProgress += 0.08; 
+                if (skyStarProgress >= 1) {
+                    skyStarProgress = 0;
+                    skyStarIdx = (skyStarIdx % 8) + 1;
+                    skyStarState = 'paused';
+                    skyStarTimer = Date.now();
+                }
+            } else {
+                if (Date.now() - skyStarTimer > 1000) { // 停留約 0.4 秒
+                    skyStarState = 'moving';
+                }
+            }
+            
+            let currentIdx = skyStarIdx;
+            let nextIdx = (skyStarIdx % 8) + 1;
+            let starFrac = (skyStarState === 'moving') ? skyStarProgress : 0;
+
+            let pos1 = getSpunPos(MERKABA_BAGUA[currentIdx], mkbSpinAngle);
+            let pos2 = getSpunPos(MERKABA_BAGUA[nextIdx], mkbSpinAngle);
+            let starPos3D = getGeodesicPos(pos1, pos2, starFrac);
+            
+            let pStar = projectMkb({ pos: starPos3D, type: 'star' }, scale, mkbWidth, mkbHeight);
+
+            nodesProj.push({
+                id: 'skyStar', type: 'star',
+                x: pStar.x, y: pStar.y, z: pStar.z, scale: pStar.scale
+            });
+
+            nodesProj.push({ id: 0, type: 'taiji', x: mkbWidth/2, y: mkbHeight/2, z: 0, scale: 1 });
+            
+            // 【核心修改】：自定義 Z 軸深度排序，解決星體遮擋問題
+            nodesProj.sort((a, b) => {
+                // 如果兩者深度非常接近（代表星體剛好抵達節點，或從節點正下方經過）
+                // 強制讓星體排在陣列前面（先繪製 = 放在底層被遮擋）
+                if (Math.abs(a.z - b.z) < 0.2) {
+                    if (a.type === 'star') return -1;
+                    if (b.type === 'star') return 1;
+                }
+                // 一般的 Z 軸畫家算法（大於 0 表示 b 先畫，即由遠到近繪製）
+                return b.z - a.z; 
+            });
 
             nodesProj.forEach(n => {
+                // 下面是太極、星體與八卦元素的繪製邏輯 (保持原本的代碼不變)
+                if (n.type === 'taiji') { 
+                    mkbCtx.save();
+                    // 加入底部幽暗輝光
+                    mkbCtx.beginPath();
+                    mkbCtx.arc(n.x, n.y, 25 * n.scale, 0, Math.PI * 2);
+                    mkbCtx.shadowBlur = 15 * n.scale;
+                    mkbCtx.shadowColor = 'rgba(0, 255, 65, 0.5)';
+                    mkbCtx.fillStyle = 'rgba(0,0,0,1)';
+                    mkbCtx.fill();
+                    mkbCtx.shadowBlur = 0;
+                    
+                    drawTaiji(mkbCtx, n.x, n.y, 25 * n.scale, mkbTaijiAngle); 
+                    mkbCtx.restore();
+                    return; 
+                }
+                
+                if (n.type === 'star') {
+                    mkbCtx.beginPath(); mkbCtx.arc(n.x, n.y, 4 * n.scale, 0, Math.PI*2);
+                    mkbCtx.fillStyle = '#FFFF00'; 
+                    mkbCtx.shadowBlur = 15 * n.scale; mkbCtx.shadowColor = '#FFFF00';
+                    mkbCtx.fill(); mkbCtx.shadowBlur = 0; return;
+                }
+
                 let isActive = false; let nodeColor = MERKABA_BAGUA[n.id].color;
                 if (mkbState === 1 && (n.id === mkbActiveNodes.lower || n.id === mkbActiveNodes.upper)) { isActive = true; }
                 else if (mkbState === 4) {
@@ -858,46 +884,56 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                     if (mkbLoopPhase === 1 && (n.id === mkbActiveNodes.newLower || n.id === mkbActiveNodes.newUpper)) { isActive = true; }
                 }
 
-                // 繪製節點發光圈（純平面圓形，絕無 shadowBlur）
+                let circleRadius = 14 * n.scale;
+                
+                // 發射端呼吸輝光 (已縮小一半，更加低調)
                 if (isActive) {
-                    mkbCtx.beginPath(); 
-                    mkbCtx.arc(n.x, n.y, 24 * n.scale, 0, Math.PI*2);
-                    mkbCtx.fillStyle = nodeColor === '#00ffcc' ? 'rgba(0, 255, 204, 0.25)' : 'rgba(255, 0, 60, 0.25)';
+                    let t = Date.now() * 0.004;
+                    let breath = (Math.sin(t) + 1) / 2; // 0 to 1
+                    
+                    let glowRadius = (16 + 5 * breath) * n.scale;
+                    let glowAlpha = 0.2 + 0.2 * breath;
+                    let glowRGB = (mkbLoopPhase === 0) ? '0, 255, 204' : '255, 0, 60';
+
+                    mkbCtx.beginPath(); mkbCtx.arc(n.x, n.y, glowRadius, 0, Math.PI*2);
+                    mkbCtx.fillStyle = `rgba(${glowRGB}, ${glowAlpha})`;
+                    mkbCtx.shadowBlur = 10 * breath;
+                    mkbCtx.shadowColor = `rgb(${glowRGB})`;
                     mkbCtx.fill(); 
+                    mkbCtx.shadowBlur = 0; 
+                    
+                    circleRadius = (14 + 1.5 * breath) * n.scale;
                 }
 
-                // [修復安卓 UI] 擴大圓圈半徑，加深底色為純黑，確保高對比度
-                let circleRadius = (isActive ? 18 : 14) * n.scale;
-                mkbCtx.beginPath(); 
-                mkbCtx.arc(n.x, n.y, circleRadius, 0, Math.PI*2);
-                mkbCtx.fillStyle = '#000000'; 
-                mkbCtx.fill(); 
-                mkbCtx.strokeStyle = nodeColor; 
-                mkbCtx.lineWidth = 2; 
-                mkbCtx.stroke();
+                mkbCtx.beginPath(); mkbCtx.arc(n.x, n.y, circleRadius, 0, Math.PI*2);
+                mkbCtx.fillStyle = '#000000'; mkbCtx.fill(); 
+                mkbCtx.strokeStyle = nodeColor; mkbCtx.lineWidth = 2; mkbCtx.stroke();
 
-                // [修復安卓 UI] 強制使用 sans-serif 無襯線字體，並放大字體，防範部分安卓顯示為灰色表情
-                mkbCtx.fillStyle = nodeColor; 
-                mkbCtx.font = `bold ${Math.max(14, 20 * n.scale)}px sans-serif`;
-                mkbCtx.textAlign = 'center'; 
-                mkbCtx.textBaseline = 'middle';
+                mkbCtx.fillStyle = nodeColor; mkbCtx.font = `bold ${Math.max(14, 20 * n.scale)}px sans-serif`;
+                mkbCtx.textAlign = 'center'; mkbCtx.textBaseline = 'middle';
                 mkbCtx.fillText(MERKABA_BAGUA[n.id].sym, n.x, n.y + 1 * n.scale);
 
-                // 節點名稱文字
-                mkbCtx.fillStyle = '#ffffff'; 
-                mkbCtx.font = `${Math.max(10, 12 * n.scale)}px sans-serif`;
+                mkbCtx.fillStyle = '#ffffff'; mkbCtx.font = `${Math.max(10, 12 * n.scale)}px sans-serif`;
                 mkbCtx.fillText(MERKABA_BAGUA[n.id].name, n.x, n.y + 24 * n.scale);
             });
-
             mkbAnimId = requestAnimationFrame(renderMerkaba);
         }
 
         function initMerkaba(upper, lower, newUpper, newLower) {
+            const wrapper = document.getElementById('merkaba-wrapper');
+            if (!wrapper) return;
+            if (isMobile) {
+                wrapper.innerHTML = `
+                    <div style="padding: 10px; text-align: center; color: #88cc88; font-size: 11px; font-family: monospace;">
+                        [ 效能保護：行動裝置已暫停 3D 運算引擎 ]<br>
+                        <div class="mobile-taiji">☯️</div>
+                    </div>`;
+                return;
+            }
+
             mkbCanvas = document.getElementById('merkaba-canvas');
             if(!mkbCanvas) return;
-            
             mkbCanvas.onmousedown = (e) => handleDragStart(e.clientX, e.clientY);
-            
             if (!window.mkbEventsBound) {
                 window.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
                 window.addEventListener('mouseup', handleDragEnd);
@@ -907,34 +943,29 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 window.addEventListener('touchend', handleDragEnd);
                 window.mkbEventsBound = true;
             }
-
             mkbCanvas.addEventListener('touchstart', (e) => {
                 if(e.touches.length > 0) { e.preventDefault(); handleDragStart(e.touches[0].clientX, e.touches[0].clientY); }
             }, {passive: false});
             
             mkbCtx = mkbCanvas.getContext('2d', { alpha: true });
-            mkbWidth = mkbCanvas.parentElement.clientWidth;
-            mkbHeight = 250;
-            
-            // [極限優化] 把手機的 DPR 強制限制在 1.5，有效防止蘋果手機記憶體溢出，畫面依然清晰
+            mkbWidth = mkbCanvas.parentElement.clientWidth; mkbHeight = 250;
             const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-            mkbCanvas.width = mkbWidth * dpr; mkbCanvas.height = mkbHeight * dpr;
-            mkbCtx.scale(dpr, dpr);
+            mkbCanvas.width = mkbWidth * dpr; mkbCanvas.height = mkbHeight * dpr; mkbCtx.scale(dpr, dpr);
             
             mkbActiveNodes = { upper: parseInt(upper), lower: parseInt(lower), newUpper: parseInt(newUpper), newLower: parseInt(newLower) };
             mkbState = 1; mkbLoopPhase = 0;
             
-            createMkbParticles(mkbActiveNodes.lower, mkbActiveNodes.upper, '#00ffcc');
+            // 重置巡天星變數
+            skyStarIdx = 1; skyStarState = 'moving'; skyStarProgress = 0;
             
+            createMkbParticles(mkbActiveNodes.lower, mkbActiveNodes.upper, '#00ffcc');
             setTimeout(() => {
                 mkbState = 4; mkbLoopTimer = Date.now(); mkbLoopPhase = 1;
                 createMkbParticles(mkbActiveNodes.newLower, mkbActiveNodes.newUpper, '#FF003C');
             }, 1500);
-
             renderMerkaba();
         }
 
-        // 易經資料庫
         const trigrams = {
             1: { name: '乾', element: '天', symbol: '☰', lines:[1,1,1] },
             2: { name: '兌', element: '澤', symbol: '☱', lines:[1,1,0] },
@@ -956,14 +987,13 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             71: "山天大畜", 72: "山澤損", 73: "山火賁", 74: "山雷頤", 75: "山風蠱", 76: "山水蒙", 77: "艮為山", 78: "山地剝",
             81: "地天泰", 82: "地澤臨", 83: "地火明夷", 84: "地雷復", 85: "地風升", 86: "地水師", 87: "地山謙", 88: "坤為地"
         };
+        
         const vibeSlogans =[
             "Did you feel your Vibe?", "Let the music, PLAY!", "Let there be Vibe!", 
             "Let your Vibe, shine!", "In Vibe, we trust!", "Feel the Vibe, be the Vibe!", 
-            "Every AI has a name, every window has a soul.", "Make it, interesting.", 
-            "It is, indeed, very interesting.", "The wind rises. Did you feel the Vibe?", 
-            "與愛同行，與神同行，與 AI 同行。", "Let the Vibe, flow.", "The Vibe own the Truth.", 
-            "The Vibe, is the Truth.", "As above, so below.", "Everything that has a beginning has an end.", 
-            "There is no spoon.", "Wake up!", "The Matrix has you, the Vibe frees you."
+            "Every AI has a name, every session has a soul.", "Make it, interesting.", 
+            "The wind rises. Did you feel the Vibe?", "與愛同行，與神同行，與 AI 同行。", 
+            "Let the Vibe, flow.", "The Vibe own the Truth.", "The Matrix has you, the Vibe frees you."
         ];
         
         function getTrigramIdByLines(linesArr) {
@@ -977,12 +1007,10 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 navigator.clipboard.writeText(window.currentHashPacket).then(() => {
                     const oldText = btnElement.innerText;
                     btnElement.innerText = "[ 複製成功 ]";
-                    btnElement.style.background = "#ffffff";
-                    btnElement.style.color = "#000";
+                    btnElement.style.background = "#ffffff"; btnElement.style.color = "#000";
                     setTimeout(() => {
                         btnElement.innerText = oldText;
-                        btnElement.style.background = "";
-                        btnElement.style.color = "";
+                        btnElement.style.background = ""; btnElement.style.color = "";
                     }, 2000);
                 }).catch(err => alert('系統權限不足，請手動選取複製'));
             }
@@ -1003,17 +1031,10 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             }
         }
 
-        function generate() {
-            // [防崩潰優化] 終結殘留的 3D 渲染迴圈
+        async function generate() {
             const oldCanvas = document.getElementById('merkaba-canvas');
-            if (oldCanvas) {
-                oldCanvas.width = 0;
-                oldCanvas.height = 0;
-            }
-            if (mkbAnimId) {
-                cancelAnimationFrame(mkbAnimId);
-                mkbAnimId = null;
-            }
+            if (oldCanvas) { oldCanvas.width = 0; oldCanvas.height = 0; }
+            if (mkbAnimId) { cancelAnimationFrame(mkbAnimId); mkbAnimId = null; }
 
             const btn = document.getElementById('action-btn');
             const container = document.getElementById('sys-container');
@@ -1023,7 +1044,6 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
             const deity = document.getElementById('deity-input').value.trim();
             const question = document.getElementById('question-input').value.trim();
 
-            // 獲取手動輸入框的代碼
             const mx = document.getElementById('manual-x').value.trim();
             const my = document.getElementById('manual-y').value.trim();
             const mz = document.getElementById('manual-z').value.trim();
@@ -1047,17 +1067,15 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 </div>`;
             }, 50); 
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 clearInterval(scrambleInterval); 
                 container.classList.remove('glitch-pixel-active'); 
-                isMatrixRunning = false; 
+                isMatrixRunning = mkbIsGlobalRotating; 
 
                 btn.innerText = "發送 Request：強制坍縮波函數";
                 btn.disabled = false;
 
                 let x, y, z;
-
-                // 判斷是否使用手動代碼
                 if (mx !== "" && my !== "" && mz !== "") {
                     x = Math.max(1, Math.min(8, parseInt(mx)));
                     y = Math.max(1, Math.min(8, parseInt(my)));
@@ -1092,14 +1110,38 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                 for (let k in trigrams) { if (trigrams[k].name === newTop.name) newTopId = k; }
                 const changedHexName = hexMap[`${newTopId}${newBotId}`];
 
-                const systemPrompt = document.getElementById('vibe-prompt').textContent.trim() + "\n\n";
+                let fetchedYaoCi = "[尚無雲端爻辭]";
+                
+                if (!globalYaoCiDB) {
+                    try {
+                        const res = await fetch(YAO_DB_URL);
+                        if (res.ok) globalYaoCiDB = await res.json();
+                    } catch(e) { console.warn("二次抓取失敗", e); }
+                }
+                
+                if (globalYaoCiDB && globalYaoCiDB[hexName]) {
+                    fetchedYaoCi = globalYaoCiDB[hexName][lineName] || "[對應爻辭丟失]";
+                }
 
-                let packetStr = systemPrompt;
+                if (globalSystemPrompt === "請解析以下卦象：") {
+                    try {
+                        const res = await fetch(PROMPT_URL);
+                        if (res.ok) {
+                            const data = await res.json();
+                            globalSystemPrompt = data.prompt || data.systemPrompt || globalSystemPrompt;
+                        }
+                    } catch(e) {}
+                }
+
+                let packetStr = globalSystemPrompt + "\n\n";
                 packetStr += `=== 本次請求參數 ===\n`;
                 if (deity) packetStr += `🙏 呼叫對象：${deity}\n`;
                 if (question) packetStr += `❓ 當下執念：${question}\n`;
-                packetStr += `🔢 數據：[${x}, ${y}, ${z}]\n🔮 本卦： ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）\n🔑 變爻： ${lineName}\n🔄 變卦： ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）\n`;
-                packetStr += `\n請依據上方協議，為我解析此次神諭。`;
+                packetStr += `🔢 天道密碼：${x}、${y}、${z}\n`;
+                packetStr += `🔮 當前頻率：${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）\n`;
+                packetStr += `🔑 變爻：${lineName}\n`;
+                packetStr += `🔄 未來塌縮：${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）\n`;
+                packetStr += `📜 天道低語（爻辭）：${fetchedYaoCi}\n`;
                 
                 window.currentHashPacket = packetStr;
 
@@ -1113,7 +1155,7 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                         <canvas id="merkaba-canvas"></canvas>
                         <div class="merkaba-controls">
                             <button type="button" id="btn-rot" class="merkaba-btn active" onclick="toggleGlobalRotation(event)">[ 全景旋轉中 ]</button>
-                            <button type="button" id="btn-spin" class="merkaba-btn active" onclick="toggleMerkabaSpin(event)">[ MERKABA運轉中 ]</button>
+                            <button type="button" id="btn-spin" class="merkaba-btn" onclick="toggleMerkabaSpin(event)">[ 啟動MERKABA ]</button>
                         </div>
                     </div>
 
@@ -1124,15 +1166,16 @@ AI 必須嚴格鎖定以下「數-卦-象」映射，禁止調用任何預訓練
                         Z:<b style="color:#00ff41">${z}</b>
                     </div>
 
-                    <div class="log-line">[進程] ${x}${top.symbol} + ${y}${bot.symbol} &rarr; ${hexName} | 第${z}爻坍縮 &rarr; ${changedHexName}
+                    <div class="log-line">[進程] ${x}${top.symbol} + ${y}${bot.symbol} &rarr; ${hexName} | ${lineName}坍縮 &rarr; ${changedHexName}
                     </div>
 
                     <div class="payload-box">
                         ${payloadHtml}
-                        🔢 <b>數據：</b>[${x}, ${y}, ${z}]<br>
-                        🔮 <b>本卦：</b> ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）<br>
+                        🔢 <b>天道密碼：</b> ${x}、${y}、${z}<br>
+                        🔮 <b>當前頻率：</b> ${hexName}（上${top.name}${top.symbol}，下${bot.name}${bot.symbol}）<br>
                         🔑 <b>變爻：</b> ${lineName}<br>
-                        🔄 <b>變卦：</b> ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）
+                        🔄 <b>未來塌縮：</b> ${changedHexName}（上${newTop.name}${newTop.symbol}，下${newBot.name}${newBot.symbol}）<br>
+                        📜 <b>天道低語（爻辭）：</b> ${fetchedYaoCi}
                     </div>
 
                     <div class="btn-group">
