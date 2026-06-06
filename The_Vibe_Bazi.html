@@ -438,7 +438,7 @@ _(直接翻译成现实生活中的“具体事物、状态或环境”。)_
 
         let isCoolingDown = false;
 
-        async function executeCompilation() {
+async function executeCompilation() {
             if (isCoolingDown) return;
 
             const btn = document.getElementById('action-btn');
@@ -462,6 +462,9 @@ _(直接翻译成现实生活中的“具体事物、状态或环境”。)_
 
             out.style.display = 'flex'; container.classList.add('glitch-pixel-active');
             
+            // 💡 新增：記錄開始坍縮的時間
+            const startTime = Date.now();
+
             let scrambleInterval = setInterval(() => {
                 const randomHex = coreWords[Math.floor(Math.random() * coreWords.length)];
                 out.innerHTML = `<div class="oracle-text" style="color: #fff; text-align:center; text-shadow: 2px 0px red, -2px 0px cyan;">
@@ -534,8 +537,14 @@ _(直接翻译成现实生活中的“具体事物、状态或环境”。)_
                 
                 window.currentPayload = packetStr;
 
+                // 💡 新增：強制延遲邏輯 (保證儀式感)
+                const elapsedTime = Date.now() - startTime;
+                const minimumWaitTime = 1500; // 最低強制等待 1.5 秒
+                if (elapsedTime < minimumWaitTime) {
+                    await new Promise(resolve => setTimeout(resolve, minimumWaitTime - elapsedTime));
+                }
+
                 // --- 渲染前端 UI ---
-                // 不再停止 Matrix 動畫，僅移除面板抖動效果
                 clearInterval(scrambleInterval); container.classList.remove('glitch-pixel-active'); 
 
                 out.innerHTML = `
@@ -562,7 +571,7 @@ _(直接翻译成现实生活中的“具体事物、状态或环境”。)_
                 </div>`;
 
             } catch (err) {
-                // 出錯時同樣不停止代碼雨
+                // 出錯時也要保證停止動畫
                 clearInterval(scrambleInterval); container.classList.remove('glitch-pixel-active'); 
                 out.innerHTML = `<div style="color:red; font-family:monospace; text-align:center;">SYSTEM ERROR: ${err.message}</div>`;
             } finally {
