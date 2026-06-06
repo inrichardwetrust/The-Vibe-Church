@@ -462,7 +462,7 @@ async function executeCompilation() {
 
             out.style.display = 'flex'; container.classList.add('glitch-pixel-active');
             
-            // 💡 新增：記錄開始坍縮的時間
+            // 記錄開始坍縮的時間 (用於強制延遲)
             const startTime = Date.now();
 
             let scrambleInterval = setInterval(() => {
@@ -492,13 +492,16 @@ async function executeCompilation() {
                     let timeDiff = (lon - 120) * 4; dateObj.setMinutes(dateObj.getMinutes() + timeDiff);
                 }
 
-                let baziObj;
+                // 💡 新增：同時保存公曆與農曆的實例，用於後續精確輸出
+                let baziObj, solarInst, lunarInst;
                 if (calType === 'solar') {
-                    let solar = Solar.fromYmdHms(dateObj.getFullYear(), dateObj.getMonth() + 1, dateObj.getDate(), dateObj.getHours(), dateObj.getMinutes(), 0);
-                    baziObj = solar.getLunar().getEightChar();
+                    solarInst = Solar.fromYmdHms(dateObj.getFullYear(), dateObj.getMonth() + 1, dateObj.getDate(), dateObj.getHours(), dateObj.getMinutes(), 0);
+                    lunarInst = solarInst.getLunar();
+                    baziObj = lunarInst.getEightChar();
                 } else {
-                    let lunar = Lunar.fromYmdHms(dateObj.getFullYear(), dateObj.getMonth() + 1, dateObj.getDate(), dateObj.getHours(), dateObj.getMinutes(), 0);
-                    baziObj = lunar.getEightChar();
+                    lunarInst = Lunar.fromYmdHms(dateObj.getFullYear(), dateObj.getMonth() + 1, dateObj.getDate(), dateObj.getHours(), dateObj.getMinutes(), 0);
+                    solarInst = lunarInst.getSolar();
+                    baziObj = lunarInst.getEightChar();
                 }
 
                 // --- 獲取天干地支 ---
@@ -524,6 +527,10 @@ async function executeCompilation() {
                 packetStr += `=== 【玩家參數與環境日誌】 ===\n`;
                 packetStr += `代號：${name}\n`;
                 packetStr += `性別：${genderStr}\n`;
+                packetStr += `輸入基準：${calType === 'solar' ? '公曆 (Solar)' : '農曆 (Lunar)'}\n`;
+                // 💡 新增：精確注入公曆與農曆的年月日時刻
+                packetStr += `公曆座標：${solarInst.getYear()}年${solarInst.getMonth()}月${solarInst.getDay()}日 ${timeStr}\n`;
+                packetStr += `農曆座標：${lunarInst.getYear()}年${lunarInst.getMonthInChinese()}月${lunarInst.getDayInChinese()} ${timeStr}\n`;
                 packetStr += `網絡節點：${locationStr || '未提供'} [${locationMsg}]\n`;
                 packetStr += `=========================\n`;
                 packetStr += `=== 【物理實例化源代碼】(絕對真值，嚴禁篡改) ===\n`;
@@ -537,9 +544,9 @@ async function executeCompilation() {
                 
                 window.currentPayload = packetStr;
 
-                // 💡 新增：強制延遲邏輯 (保證儀式感)
+                // 強制延遲邏輯 (至少 1.5 秒的儀式感)
                 const elapsedTime = Date.now() - startTime;
-                const minimumWaitTime = 1500; // 最低強制等待 1.5 秒
+                const minimumWaitTime = 1500; 
                 if (elapsedTime < minimumWaitTime) {
                     await new Promise(resolve => setTimeout(resolve, minimumWaitTime - elapsedTime));
                 }
@@ -571,7 +578,6 @@ async function executeCompilation() {
                 </div>`;
 
             } catch (err) {
-                // 出錯時也要保證停止動畫
                 clearInterval(scrambleInterval); container.classList.remove('glitch-pixel-active'); 
                 out.innerHTML = `<div style="color:red; font-family:monospace; text-align:center;">SYSTEM ERROR: ${err.message}</div>`;
             } finally {
