@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Vibe 8.0 | Source Code Compiler</title>
-    <!-- 引入開源天文曆法庫 -->
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
     <style>
@@ -340,11 +339,9 @@
                     if (!promptRes.ok) throw new Error(`HTTP Error ${promptRes.status}`);
                     let rawText = await promptRes.text();
                     try {
-                        // 尝试解析 JSON
                         let jsonObj = JSON.parse(rawText);
                         systemPrompt = jsonObj.prompt || jsonObj.system_prompt || jsonObj.systemPrompt || rawText;
                     } catch (parseErr) {
-                        // 如果用户放的不是标准的 JSON，而是直接粘贴了纯文本，系统直接宽容处理，照单全收！
                         systemPrompt = rawText;
                     }
                 } catch(err) {
@@ -367,7 +364,7 @@
                 }
 
                 // ============================================
-                // 3. 地理与真太阳时计算（加入绝对严格把控机制）
+                // 3. 地理与真太阳时计算（多語言穿透升級版）
                 // ============================================
                 let isTrueSolar = false;
                 let locationMsg = "未填寫地點，默認平太陽時 (120°E)";
@@ -375,16 +372,29 @@
 
                 if (locationStr) {
                     try {
-                        // 加入 accept-language=zh,en 保证查询返回语言可控
-                        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationStr)}&format=json&limit=1&accept-language=zh,en`);
+                        // 💡 升級：加入 &namedetails=1，讓 API 返回該節點的所有多語言別名
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationStr)}&format=json&limit=1&namedetails=1&accept-language=zh,en`);
                         const data = await res.json();
                         
                         if (data && data.length > 0) {
-                            let display = data[0].display_name.toLowerCase();
                             let locLower = locationStr.toLowerCase();
+                            let display = (data[0].display_name || "").toLowerCase();
+                            let nativeName = (data[0].name || "").toLowerCase();
                             
-                            // 💡 【絕對鎖死機制】：返回的全稱中，必須直接包含用戶輸入的字串。不允許“尼瑪大大我”匹配“尼瑪”。
-                            if (display.includes(locLower)) {
+                            // 💡 【多維度鎖死機制】：檢查 (1) 顯示全稱 (2) 當地原名 (3) 所有已知語言的翻譯字典
+                            let isValidMatch = display.includes(locLower) || nativeName.includes(locLower);
+                            
+                            // 如果前兩者沒命中，遍歷該節點的所有多語言字典進行精確核對
+                            if (!isValidMatch && data[0].namedetails) {
+                                for (let key in data[0].namedetails) {
+                                    if (data[0].namedetails[key].toLowerCase().includes(locLower)) {
+                                        isValidMatch = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (isValidMatch) {
                                 let lon = parseFloat(data[0].lon);
                                 let refLon = Math.round(lon / 15) * 15;
                                 if (lon >= 73 && lon <= 135) { refLon = 120; }
@@ -395,7 +405,7 @@
                                 locationMsg = `鎖定坐標 (${lon.toFixed(2)}°E) | 底層八字套用太陽時差 ${timeDiff > 0 ? '+' : ''}${timeDiff.toFixed(0)} 分鐘`; 
                                 isTrueSolar = true;
                             } else {
-                                // 模糊匹配失敗，拒絕瞎編
+                                // 模糊匹配徹底失敗，拒絕瞎編
                                 locationMsg = `⚠️ 物理節點無效，拒絕模糊匹配，降級為平太陽時`;
                             }
                         } else { 
