@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>VibeIChing易经物理学 4.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        :root { --bg: #050505; --panel: #0d0d0d; --text: #d0d0d0; --yang: #ff3b30; --yin: #0a84ff; --axis: #30d158; --change: #ff9f0a; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: "PingFang SC", "Microsoft YaHei", sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        
+        #sidebar { width: 350px; background: var(--panel); border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; z-index: 10; box-shadow: 5px 0 30px rgba(0,0,0,0.9);}
+        h1 { font-size: 15px; padding: 20px; border-bottom: 1px solid #1a1a1a; text-align: center; letter-spacing: 3px; color: #888; margin:0; }
+        
+        .section { padding: 12px 20px; border-bottom: 1px solid #1a1a1a; }
+        .section-title { font-size: 11px; color: #666; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 2px; text-align: center;}
+        
+        .mode-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .mode-btn { flex: 1; padding: 8px; text-align: center; border: 1px solid #222; cursor: pointer; border-radius: 4px; font-size: 12px; color: #666; background: #111; transition: 0.2s;}
+        .mode-btn:hover { background: #1a1a1a; color: #aaa; }
+        .mode-btn.active { background: rgba(48, 209, 88, 0.1); color: var(--axis); border-color: var(--axis); font-weight: bold;}
+
+        /* 自适应方块化起卦输入框 */
+        .input-row { display: flex; justify-content: center; gap: 20px; margin-bottom: 5px; }
+        .input-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .input-group .label { font-size: 11px; color: #666; letter-spacing: 1px;}
+        .num-input { width: 55px; background: #141414; border: 1px solid #333; color: var(--axis); padding: 10px 0; border-radius: 6px; font-size: 20px; font-weight: bold; text-align: center; font-family: 'Courier New', monospace; outline: none; transition: 0.2s;}
+        .num-input:focus { border-color: var(--axis); background: #1a1a1a; box-shadow: 0 0 10px rgba(48, 209, 88, 0.2);}
+
+        /* 八卦选择网格 */
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .btn { background: #141414; border: 1px solid #222; color: #666; padding: 8px 0; border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .btn:hover { background: #1f1f1f; color: #eee; border-color: #444;}
+        .btn .name { font-size: 18px; font-weight: bold; margin-bottom: 2px; letter-spacing: 1px;}
+        .btn .binary { font-size: 10px; font-family: 'Courier New', monospace; opacity: 0.6; }
+        
+        .btn.active-upper { border-color: var(--yin); color: var(--yin); background: rgba(10, 132, 255, 0.08); }
+        .btn.active-lower { border-color: var(--yang); color: var(--yang); background: rgba(255, 59, 48, 0.08); }
+
+        /* 变爻操作区 (单选) */
+        .yao-row { display: flex; gap: 5px; }
+        .yao-btn { flex: 1; padding: 8px 0; font-size: 12px; font-weight:bold; border-radius: 4px; background: #111; color: #555; border: 1px solid #222; cursor: pointer; transition: 0.2s;}
+        .yao-btn.active { background: rgba(255, 159, 10, 0.15); color: var(--change); border-color: var(--change); }
+        
+        #monitor { flex-grow: 1; padding: 20px; font-family: 'Courier New', monospace; font-size: 12px; color: #777; line-height: 1.6; background: #000; overflow-y: auto;}
+        .hl { color: var(--axis); } .warn { color: var(--yang); } 
+        .wait-text { color: #0a84ff; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        #canvas-container { flex-grow: 1; position: relative; }
+        .timer-bar { position: absolute; top: 0; left: 0; height: 3px; background: var(--axis); transition: width 0.02s linear; z-index: 5; box-shadow: 0 0 10px var(--axis);}
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h1>VibeIChing易经物理学 4.0</h1>
+    
+    <div class="section" style="padding-bottom: 4px;">
+        <div class="mode-row">
+            <div id="en-annihilate" class="mode-btn active" onclick="setMode('en', 'annihilate')">宏观湮灭法则</div>
+            <div id="en-pure" class="mode-btn" onclick="setMode('en', 'pure')">绝对叠加(无湮灭)</div>
+        </div>
+        <div class="mode-row">
+            <div id="st-bind" class="mode-btn" onclick="setMode('st', 'bind')">系统刚体绑定</div>
+            <div id="st-split" class="mode-btn active" onclick="setMode('st', 'split')">点火后解体自由落体</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">起卦矩阵</div>
+        <div class="input-row">
+            <div class="input-group">
+                <span class="label">上卦</span>
+                <input type="number" id="num-upper" class="num-input" value="1" oninput="applyNumbers()">
+            </div>
+            <div class="input-group">
+                <span class="label">下卦</span>
+                <input type="number" id="num-lower" class="num-input" value="8" oninput="applyNumbers()">
+            </div>
+            <div class="input-group">
+                <span class="label">动爻</span>
+                <input type="number" id="num-yao" class="num-input" value="3" oninput="applyNumbers()">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">天位阵列 (上卦)</div>
+        <div class="grid" id="upper-grid"></div>
+        <div class="section-title" style="margin-top:10px;">地位阵列 (下卦)</div>
+        <div class="grid" id="lower-grid"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">能量干涉点 (动爻)</div>
+        <div class="yao-row" id="yao-grid"></div>
+    </div>
+    
+    <div id="monitor"></div>
+</div>
+
+<div id="canvas-container">
+    <div class="timer-bar" id="timer-bar"></div>
+</div>
+
+<script>
+    const trigramOrder = ['111', '110', '101', '100', '011', '010', '001', '000'];
+    const trigrams = {
+        '111': { name: '乾', symbol: '☰', nature: '天' }, '000': { name: '坤', symbol: '☷', nature: '地' },
+        '100': { name: '震', symbol: '☳', nature: '雷' }, '011': { name: '巽', symbol: '☴', nature: '风' },
+        '010': { name: '坎', symbol: '☵', nature: '水' }, '101': { name: '离', symbol: '☲', nature: '火' },
+        '001': { name: '艮', symbol: '☶', nature: '山' }, '110': { name: '兑', symbol: '☱', nature: '泽' }
+    };
+    const hexNames = {
+        "111111":"乾为天","000000":"坤为地","100100":"震为雷","011011":"巽为风","010010":"坎为水","101101":"离为火","001001":"艮为山","110110":"兑为泽",
+        "111000":"天地否","000111":"地天泰","100011":"雷风恒","011100":"风雷益","010101":"水火既济","101010":"火水未济","001110":"山泽损","110001":"泽山咸",
+        "111100":"天雷无妄","111011":"天风姤","111010":"天水讼","111101":"天火同人","111001":"天山遁","111110":"天泽履",
+        "000100":"地雷复","000011":"地风升","000010":"地水师","000101":"地火明夷","000001":"地山谦","000110":"地泽临",
+        "100111":"雷天大壮","100000":"雷地豫","100010":"雷水解","100101":"雷火丰","100001":"雷山小过","100110":"雷泽归妹",
+        "011111":"风天小畜","011000":"风地观","011010":"风水涣","011101":"风火家人","011001":"风山渐","011110":"风泽中孚",
+        "010111":"水天需","010000":"水地比","010100":"水雷屯","010011":"水风井","010001":"水山蹇","010110":"水泽节",
+        "101111":"火天大有","101000":"火地晋","101100":"火雷噬嗑","101011":"火风鼎","101001":"火山旅","101110":"火泽睽",
+        "001111":"山天大畜","001000":"山地剥","001100":"山雷颐","001011":"山风蛊","001010":"山水蒙","001101":"山火贲",
+        "110111":"泽天夬","110000":"泽地萃","110100":"泽雷随","110011":"泽风大过","110010":"泽水困","110101":"泽火革"
+    };
+
+    let upperSel = '111', lowerSel = '000'; 
+    let activeLine = 2; 
+    let energyMode = 'annihilate', structMode = 'split';
+
+    function setMode(type, val) {
+        if(type === 'en') energyMode = val; else structMode = val;
+        document.getElementById('en-annihilate').classList.toggle('active', energyMode === 'annihilate');
+        document.getElementById('en-pure').classList.toggle('active', energyMode === 'pure');
+        document.getElementById('st-bind').classList.toggle('active', structMode === 'bind');
+        document.getElementById('st-split').classList.toggle('active', structMode === 'split');
+        resetSimulation();
+    }
+
+    function applyNumbers() {
+        let n1 = parseInt(document.getElementById('num-upper').value);
+        let n2 = parseInt(document.getElementById('num-lower').value);
+        let n3 = parseInt(document.getElementById('num-yao').value);
+        let changed = false;
+
+        if (!isNaN(n1) && n1 > 0) {
+            let n = n1 % 8; if(n===0) n=8;
+            let newU = trigramOrder[n-1];
+            if (upperSel !== newU) { upperSel = newU; changed = true; }
+        }
+        if (!isNaN(n2) && n2 > 0) {
+            let n = n2 % 8; if(n===0) n=8;
+            let newL = trigramOrder[n-1];
+            if (lowerSel !== newL) { lowerSel = newL; changed = true; }
+        }
+        if (!isNaN(n3) && n3 > 0) {
+            let n = n3 % 6; if(n===0) n=6;
+            let newY = n - 1;
+            if (activeLine !== newY) { activeLine = newY; changed = true; }
+        }
+
+        if(changed) { initUI(); resetSimulation(); }
+    }
+
+    function toggleYao(idx) {
+        activeLine = idx;
+        document.getElementById('num-yao').value = idx + 1;
+        initUI(); resetSimulation();
+    }
+
+    function initUI() {
+        const buildGrid = (domId, current, type) => {
+            const el = document.getElementById(domId);
+            el.innerHTML = '';
+            trigramOrder.forEach(key => {
+                let div = document.createElement('div');
+                div.className = `btn ${key === current ? (type === 'u' ? 'active-upper' : 'active-lower') : ''}`;
+                div.innerHTML = `<div class="name">${trigrams[key].name}</div><div class="binary">${key}</div>`;
+                div.onclick = () => {
+                    if(type==='u') {
+                        upperSel = key; 
+                        document.getElementById('num-upper').value = trigramOrder.indexOf(key) + 1;
+                    } else {
+                        lowerSel = key;
+                        document.getElementById('num-lower').value = trigramOrder.indexOf(key) + 1;
+                    }
+                    initUI(); resetSimulation();
+                };
+                el.appendChild(div);
+            });
+        };
+        buildGrid('upper-grid', upperSel, 'u');
+        buildGrid('lower-grid', lowerSel, 'l');
+
+        const labels = ['初', '二', '三', '四', '五', '上'];
+        const yaoContainer = document.getElementById('yao-grid');
+        yaoContainer.innerHTML = '';
+        labels.forEach((L, i) => {
+            let btn = document.createElement('div');
+            btn.className = `yao-btn ${activeLine === i ? 'active' : ''}`;
+            btn.innerText = L;
+            btn.onclick = () => toggleYao(i);
+            yaoContainer.appendChild(btn);
+        });
+    }
+
+    function getFullHexName(u, l) {
+        let mainName = hexNames[u+l] || (trigrams[u].nature + trigrams[l].nature + "卦");
+        return `${mainName} (上${trigrams[u].name} 下${trigrams[l].name})`;
+    }
+
+    function getChangedHex() {
+        let l = lowerSel.split(''), u = upperSel.split('');
+        if(activeLine === 0) l[0] = l[0] === '1' ? '0' : '1';
+        else if(activeLine === 1) l[1] = l[1] === '1' ? '0' : '1';
+        else if(activeLine === 2) l[2] = l[2] === '1' ? '0' : '1';
+        else if(activeLine === 3) u[0] = u[0] === '1' ? '0' : '1';
+        else if(activeLine === 4) u[1] = u[1] === '1' ? '0' : '1';
+        else if(activeLine === 5) u[2] = u[2] === '1' ? '0' : '1';
+        return { uC: u.join(''), lC: l.join('') };
+    }
+
+    function getChangingText() {
+        let full = lowerSel + upperSel; 
+        const labels = ['初', '二', '三', '四', '五', '上'];
+        let bit = full[activeLine];
+        let txt = activeLine === 0 ? (bit === '1' ? '初九' : '初六') : (activeLine === 5 ? (bit === '1' ? '上九' : '上六') : ((bit === '1' ? '九' : '六') + labels[activeLine]));
+        return "动爻引发: " + txt;
+    }
+
+    // --- 物理引擎 ---
+    const { Engine, Render, Runner, Body, Composite, Bodies, Events, Vector } = Matter;
+    const engine = Engine.create({ gravity: { x: 0, y: 0 } });
+    const container = document.getElementById('canvas-container');
+    const render = Render.create({
+        element: container, engine: engine,
+        options: { width: container.clientWidth, height: container.clientHeight, wireframes: false, background: 'transparent', pixelRatio: 1 } // pixelRatio 强制为1，解决Retina高分屏渲染卡顿
+    });
+    Render.run(render);
+    Runner.run(Runner.create(), engine);
+
+    let activeBodies = [];
+    const BW = 22, BH = 90, GAP = 12;
+    const WAIT_TIME = 1000, CYCLE_TIME = 7000;
+    let startTime = 0, currentPhase = 'init';
+    let progressInterval, cycleTimer;
+    let hexA_Data, hexB_Data;
+
+    function getMacroDir(sel) { return sel.split('').filter(c=>c==='1').length >= 2 ? 'UP' : 'DOWN'; }
+
+    function buildHexData(uSel, lSel, cx) {
+        let uMacro = getMacroDir(uSel), lMacro = getMacroDir(lSel);
+        let isMacroCollision = (energyMode === 'annihilate') && (uMacro === 'DOWN' && lMacro === 'UP');
+        let annMem = [false,false,false];
+        for(let i=0; i<3; i++) annMem[i] = isMacroCollision && (uSel[i] !== lSel[i]);
+        return { uSel, lSel, cx, isMacroCollision, annMem };
+    }
+
+    // 独立封装竖向绘制文字函数
+    function drawVerticalText(ctx, text, startX, startY) {
+        ctx.font = 'bold 13px "Microsoft YaHei"';
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const lineH = 14; 
+        const trueStartY = startY - ((text.length - 1) * lineH) / 2;
+        for (let i = 0; i < text.length; i++) {
+            ctx.fillText(text[i], startX, trueStartY + i * lineH);
+        }
+    }
+
+    function resetSimulation() {
+        Composite.clear(engine.world);
+        activeBodies = [];
+        
+        const W = container.clientWidth, H = container.clientHeight;
+        const cy = H / 2;
+        const cx1 = W * 0.25, cx2 = W * 0.75;
+        const sbW = W * 0.45, sbH = H * 0.8; 
+
+        const wallOpt = { isStatic: true, restitution: 0.8, render: { fillStyle: 'transparent', strokeStyle: '#222', lineWidth: 1, lineDash: [5,5] } };
+        const walls = [
+            Bodies.rectangle(cx1, cy + sbH/2, sbW, 20, wallOpt), Bodies.rectangle(cx1, cy - sbH/2, sbW, 20, wallOpt),
+            Bodies.rectangle(cx1 - sbW/2, cy, 20, sbH+20, wallOpt), Bodies.rectangle(cx1 + sbW/2, cy, 20, sbH+20, wallOpt),
+            Bodies.rectangle(cx2, cy + sbH/2, sbW, 20, wallOpt), Bodies.rectangle(cx2, cy - sbH/2, sbW, 20, wallOpt),
+            Bodies.rectangle(cx2 - sbW/2, cy, 20, sbH+20, wallOpt), Bodies.rectangle(cx2 + sbW/2, cy, 20, sbH+20, wallOpt),
+            Bodies.rectangle(W/2, cy, 2, H, { isStatic: true, isSensor:true, render:{ fillStyle:'#1a1a1a' }})
+        ];
+        Composite.add(engine.world, walls);
+
+        let { uC, lC } = getChangedHex();
+        hexA_Data = buildHexData(upperSel, lowerSel, cx1);
+        hexB_Data = buildHexData(uC, lC, cx2);
+
+        [hexA_Data, hexB_Data].forEach((data, index) => {
+            const parts = [];
+            for(let i=0; i<3; i++) {
+                const offsetX = (i - 1) * (BW + GAP);
+                const uColorInit = data.uSel[i] === '1' ? '#ff3b30' : '#0a84ff';
+                const lColorInit = data.lSel[i] === '1' ? '#ff3b30' : '#0a84ff';
+                parts.push(Bodies.rectangle(data.cx + offsetX, cy - 50, BW, BH, { render: { fillStyle: uColorInit, strokeStyle: '#111' }}));
+                parts.push(Bodies.rectangle(data.cx + offsetX, cy + 50, BW, BH, { render: { fillStyle: lColorInit, strokeStyle: '#111' }}));
+            }
+            let initSys = Body.create({ parts: parts, isSensor: true }); 
+            initSys.hexData = data; initSys.label = 'init_system'; initSys.tag = index===0 ? 'A' : 'B';
+            activeBodies.push(initSys);
+            Composite.add(engine.world, initSys);
+        });
+        
+        currentPhase = 'init'; startTime = Date.now();
+        // 取消高频重绘，统一集中为一次渲染更新
+        document.getElementById('monitor').innerHTML = `<span class="wait-text">⏳ 正在推演八卦时空方位... (1s缓冲)</span>`;
+        startTimer();
+    }
+
+    // 画布轻量级渲染逻辑
+    Events.on(render, 'afterRender', function() {
+        const ctx = render.context;
+        const W = container.clientWidth, H = container.clientHeight;
+        
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = 'bold 16px "PingFang SC"'; ctx.fillStyle = '#eee';
+        ctx.fillText(`【本卦】 ${getFullHexName(upperSel, lowerSel)}`, W * 0.25, H * 0.06);
+        let { uC, lC } = getChangedHex();
+        ctx.fillText(`【变卦】 ${getFullHexName(uC, lC)}`, W * 0.75, H * 0.06);
+        ctx.font = 'bold 14px "PingFang SC"'; ctx.fillStyle = 'var(--change)';
+        ctx.fillText(getChangingText(), W * 0.75, H * 0.1);
+
+        activeBodies.forEach(body => {
+            ctx.save();
+            ctx.translate(body.position.x, body.position.y);
+            ctx.rotate(body.angle); 
+
+            let hData = body.hexData || (body.tag==='A' ? hexA_Data : hexB_Data);
+            let uN = trigrams[hData.uSel].name;
+            let lN = trigrams[hData.lSel].name;
+
+            // ===== 修改为实线边框，并加粗、提高亮度 =====
+            ctx.lineWidth = 1.5; 
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; 
+            ctx.setLineDash([]); 
+
+            // 文字统一悬挂在左侧，表示卦象的物理底座（初爻所在方位）
+            const textX = -72;
+
+            if (body.label === 'init_system' || body.label === 'system') {
+                ctx.strokeRect(-55, -95, 110, 90); 
+                drawVerticalText(ctx, `上卦:${uN}`, textX, -50);  // 去掉了(111)二进制后缀
+                
+                ctx.strokeRect(-55, 5, 110, 90); 
+                drawVerticalText(ctx, `下卦:${lN}`, textX, 50);  // 去掉了(111)二进制后缀
+                
+                ctx.beginPath(); ctx.arc(0, 0, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = currentPhase === 'init' ? '#ff9f0a' : '#30d158'; ctx.fill();
+            } else if (body.label === 'upper') {
+                ctx.strokeRect(-55, -45, 110, 90); 
+                drawVerticalText(ctx, `上卦:${uN}`, textX, 0);   // 去掉了(111)二进制后缀
+                ctx.beginPath(); ctx.arc(0, 0, 4, 0, 2 * Math.PI); ctx.fillStyle = '#30d158'; ctx.fill();
+            } else if (body.label === 'lower') {
+                ctx.strokeRect(-55, -45, 110, 90); 
+                drawVerticalText(ctx, `下卦:${lN}`, textX, 0);   // 去掉了(111)二进制后缀
+                ctx.beginPath(); ctx.arc(0, 0, 4, 0, 2 * Math.PI); ctx.fillStyle = '#30d158'; ctx.fill();
+            }
+            ctx.restore();
+        });
+    });
+
+    function startTimer() {
+        clearInterval(progressInterval); clearTimeout(cycleTimer);
+        let bar = document.getElementById('timer-bar');
+        progressInterval = setInterval(() => { bar.style.width = ((Date.now() - startTime) / CYCLE_TIME) * 100 + '%'; }, 20);
+        cycleTimer = setTimeout(resetSimulation, CYCLE_TIME);
+    }
+
+    function triggerActivePhase() {
+        currentPhase = 'active';
+        activeBodies.forEach(b => Composite.remove(engine.world, b));
+        activeBodies = [];
+        const cy = container.clientHeight / 2;
+
+        [hexA_Data, hexB_Data].forEach((data, index) => {
+            let tagKey = index === 0 ? 'A' : 'B';
+            if (structMode === 'split') {
+                const uParts = [], lParts = [], uForce = [], lForce = [];
+                for(let i=0; i<3; i++) {
+                    const uBit = data.uSel[i], lBit = data.lSel[i];
+                    const isAnn = data.annMem[i];
+                    const offsetX = (i - 1) * (BW + GAP);
+                    const uC = isAnn ? '#333333' : (uBit==='1'?'#ff3b30':'#0a84ff');
+                    const lC = isAnn ? '#333333' : (lBit==='1'?'#ff3b30':'#0a84ff');
+
+                    uParts.push(Bodies.rectangle(data.cx + offsetX, cy - 50, BW, BH, { render: { fillStyle: uC, strokeStyle: isAnn?'#111':'#222' } }));
+                    lParts.push(Bodies.rectangle(data.cx + offsetX, cy + 50, BW, BH, { render: { fillStyle: lC, strokeStyle: isAnn?'#111':'#222' } }));
+
+                    if(!isAnn) {
+                        uForce.push({ offset: { x: offsetX, y: 0 }, dir: uBit === '1' ? -1 : 1 });
+                        lForce.push({ offset: { x: offsetX, y: 0 }, dir: lBit === '1' ? -1 : 1 });
+                    }
+                }
+                let upperBody = Body.create({ parts: uParts, frictionAir: 0.015, mass: 2.5, restitution: 0.8 });
+                let lowerBody = Body.create({ parts: lParts, frictionAir: 0.015, mass: 2.5, restitution: 0.8 });
+                upperBody.forcePlan = uForce; lowerBody.forcePlan = lForce;
+                upperBody.label = 'upper'; lowerBody.label = 'lower';
+                upperBody.tag = tagKey; lowerBody.tag = tagKey;
+                activeBodies.push(upperBody, lowerBody);
+            } else {
+                const parts = [], forcePlan = [];
+                for(let i=0; i<3; i++) {
+                    const uBit = data.uSel[i], lBit = data.lSel[i];
+                    const isAnn = data.annMem[i];
+                    const offsetX = (i - 1) * (BW + GAP);
+                    const uC = isAnn ? '#333333' : (uBit==='1'?'#ff3b30':'#0a84ff');
+                    const lC = isAnn ? '#333333' : (lBit==='1'?'#ff3b30':'#0a84ff');
+
+                    parts.push(Bodies.rectangle(data.cx + offsetX, cy - 50, BW, BH, { render: { fillStyle: uC, strokeStyle: '#222' } }));
+                    parts.push(Bodies.rectangle(data.cx + offsetX, cy + 50, BW, BH, { render: { fillStyle: lC, strokeStyle: '#222' } }));
+
+                    if(!isAnn) {
+                        forcePlan.push({ offset: { x: offsetX, y: -50 }, dir: uBit === '1' ? -1 : 1 });
+                        forcePlan.push({ offset: { x: offsetX, y: 50 }, dir: lBit === '1' ? -1 : 1 });
+                    }
+                }
+                let sys = Body.create({ parts: parts, frictionAir: 0.02, mass: 5, restitution: 0.6 });
+                sys.forcePlan = forcePlan; sys.label = 'system'; sys.tag = tagKey;
+                activeBodies.push(sys);
+            }
+        });
+        Composite.add(engine.world, activeBodies);
+
+        // 点火时仅更新一次DOM状态，拒绝性能阻塞
+        document.getElementById('monitor').innerHTML = `引擎已点火，全速演算中...<br><br>左侧为本卦干涉轨道，右侧为变卦分流干涉。<br><br><span class="hl">注意左侧竖排文字：由于左边是初爻位(基座)，文字所在的那条边永远是卦象真实的“底部”！</span>`;
+    }
+
+    // 每一帧只做最纯粹的向量计算，彻底剥离DOM逻辑
+    Events.on(engine, 'beforeUpdate', () => {
+        if(currentPhase === 'init') {
+            if (Date.now() - startTime > WAIT_TIME) triggerActivePhase();
+            return;
+        }
+
+        const FORCE_MAG = 0.0013; 
+        activeBodies.forEach(body => {
+            body.forcePlan.forEach(fp => {
+                const worldOffset = Vector.rotate(fp.offset, body.angle);
+                const worldPos = Vector.add(body.position, worldOffset);
+                Body.applyForce(body, worldPos, { x: 0, y: fp.dir * FORCE_MAG });
+            });
+        });
+    });
+
+    window.addEventListener('resize', () => {
+        render.canvas.width = container.clientWidth; render.canvas.height = container.clientHeight;
+        resetSimulation();
+    });
+
+    initUI(); resetSimulation();
+</script>
+</body>
+</html>
