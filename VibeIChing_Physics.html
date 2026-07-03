@@ -48,6 +48,32 @@
 
         #canvas-container { flex-grow: 1; position: relative; }
         .timer-bar { position: absolute; top: 0; left: 0; height: 3px; background: var(--axis); transition: width 0.02s linear; z-index: 5; box-shadow: 0 0 10px var(--axis);}
+
+        /* ===== 新增：底部版权与计数器样式 ===== */
+        .sidebar-footer {
+            flex-shrink: 0;
+            background: #080808;
+            border-top: 1px solid #1a1a1a;
+            padding: 15px;
+            text-align: center;
+        }
+        .counter-display {
+            font-size: 12px;
+            color: var(--axis);
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+            background: rgba(48, 209, 88, 0.05);
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(48, 209, 88, 0.2);
+        }
+        .counter-display span { font-weight: bold; font-size: 14px; color: #fff;}
+        .copyright-notice {
+            font-size: 10px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .copyright-notice .highlight { color: #888; }
     </style>
 </head>
 <body>
@@ -97,6 +123,18 @@
     </div>
     
     <div id="monitor"></div>
+
+    <!-- ===== 新增：底部声明与计数器区块 ===== -->
+    <div class="sidebar-footer">
+        <div class="counter-display">
+            全网累计推演: <span id="global-counter">读取中...</span> 次
+        </div>
+        <div class="copyright-notice">
+            <span class="highlight">VibeIChing Beta 内测版</span><br>
+            版权所有 © 2024-2026 保留所有权利<br>
+            严禁未经授权的转载、爬取及任何商业用途
+        </div>
+    </div>
 </div>
 
 <div id="canvas-container">
@@ -104,6 +142,29 @@
 </div>
 
 <script>
+    // ===== 新增：全局计数器逻辑 =====
+    // 使用公开免费的 CounterAPI，通过 namespace 和 key 来记录
+    const COUNTER_NAMESPACE = 'vibeiching_beta_4_0'; 
+    const COUNTER_KEY = 'global_simulations';
+    
+    // 增加计数并更新UI
+    async function triggerGlobalCounter() {
+        try {
+            const response = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NAMESPACE}/${COUNTER_KEY}/up`);
+            const data = await response.json();
+            document.getElementById('global-counter').innerText = data.count;
+        } catch (error) {
+            document.getElementById('global-counter').innerText = '网络异常';
+            console.error('计数器请求失败:', error);
+        }
+    }
+
+    // 页面刚加载时，自动算作一次推演
+    window.addEventListener('DOMContentLoaded', () => {
+        triggerGlobalCounter();
+    });
+    // ===================================
+
     const trigramOrder = ['111', '110', '101', '100', '011', '010', '001', '000'];
     const trigrams = {
         '111': { name: '乾', symbol: '☰', nature: '天' }, '000': { name: '坤', symbol: '☷', nature: '地' },
@@ -135,6 +196,7 @@
         document.getElementById('st-bind').classList.toggle('active', structMode === 'bind');
         document.getElementById('st-split').classList.toggle('active', structMode === 'split');
         resetSimulation();
+        triggerGlobalCounter(); // 切换模式算作一次新推演
     }
 
     function applyNumbers() {
@@ -159,13 +221,21 @@
             if (activeLine !== newY) { activeLine = newY; changed = true; }
         }
 
-        if(changed) { initUI(); resetSimulation(); }
+        if(changed) { 
+            initUI(); 
+            resetSimulation(); 
+            triggerGlobalCounter(); // 输入数字触发算作一次新推演
+        }
     }
 
     function toggleYao(idx) {
-        activeLine = idx;
-        document.getElementById('num-yao').value = idx + 1;
-        initUI(); resetSimulation();
+        if(activeLine !== idx) {
+            activeLine = idx;
+            document.getElementById('num-yao').value = idx + 1;
+            initUI(); 
+            resetSimulation();
+            triggerGlobalCounter(); // 切换动爻算作一次新推演
+        }
     }
 
     function initUI() {
@@ -177,14 +247,21 @@
                 div.className = `btn ${key === current ? (type === 'u' ? 'active-upper' : 'active-lower') : ''}`;
                 div.innerHTML = `<div class="name">${trigrams[key].name}</div><div class="binary">${key}</div>`;
                 div.onclick = () => {
-                    if(type==='u') {
+                    let changed = false;
+                    if(type==='u' && upperSel !== key) {
                         upperSel = key; 
                         document.getElementById('num-upper').value = trigramOrder.indexOf(key) + 1;
-                    } else {
+                        changed = true;
+                    } else if (type==='l' && lowerSel !== key) {
                         lowerSel = key;
                         document.getElementById('num-lower').value = trigramOrder.indexOf(key) + 1;
+                        changed = true;
                     }
-                    initUI(); resetSimulation();
+                    if(changed) {
+                        initUI(); 
+                        resetSimulation();
+                        triggerGlobalCounter(); // 点击八卦阵列算作一次新推演
+                    }
                 };
                 el.appendChild(div);
             });
@@ -234,7 +311,7 @@
     const container = document.getElementById('canvas-container');
     const render = Render.create({
         element: container, engine: engine,
-        options: { width: container.clientWidth, height: container.clientHeight, wireframes: false, background: 'transparent', pixelRatio: 1 } // pixelRatio 强制为1，解决Retina高分屏渲染卡顿
+        options: { width: container.clientWidth, height: container.clientHeight, wireframes: false, background: 'transparent', pixelRatio: 1 } 
     });
     Render.run(render);
     Runner.run(Runner.create(), engine);
@@ -256,7 +333,6 @@
         return { uSel, lSel, cx, isMacroCollision, annMem };
     }
 
-    // 独立封装竖向绘制文字函数
     function drawVerticalText(ctx, text, startX, startY) {
         ctx.font = 'bold 13px "Microsoft YaHei"';
         ctx.fillStyle = 'rgba(255,255,255,0.7)';
@@ -308,12 +384,10 @@
         });
         
         currentPhase = 'init'; startTime = Date.now();
-        // 取消高频重绘，统一集中为一次渲染更新
         document.getElementById('monitor').innerHTML = `<span class="wait-text">⏳ 正在推演八卦时空方位... (1s缓冲)</span>`;
         startTimer();
     }
 
-    // 画布轻量级渲染逻辑
     Events.on(render, 'afterRender', function() {
         const ctx = render.context;
         const W = container.clientWidth, H = container.clientHeight;
@@ -335,30 +409,28 @@
             let uN = trigrams[hData.uSel].name;
             let lN = trigrams[hData.lSel].name;
 
-            // ===== 修改为实线边框，并加粗、提高亮度 =====
             ctx.lineWidth = 1.5; 
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; 
             ctx.setLineDash([]); 
 
-            // 文字统一悬挂在左侧，表示卦象的物理底座（初爻所在方位）
             const textX = -72;
 
             if (body.label === 'init_system' || body.label === 'system') {
                 ctx.strokeRect(-55, -95, 110, 90); 
-                drawVerticalText(ctx, `上卦:${uN}`, textX, -50);  // 去掉了(111)二进制后缀
+                drawVerticalText(ctx, `上卦:${uN}`, textX, -50); 
                 
                 ctx.strokeRect(-55, 5, 110, 90); 
-                drawVerticalText(ctx, `下卦:${lN}`, textX, 50);  // 去掉了(111)二进制后缀
+                drawVerticalText(ctx, `下卦:${lN}`, textX, 50); 
                 
                 ctx.beginPath(); ctx.arc(0, 0, 4, 0, 2 * Math.PI);
                 ctx.fillStyle = currentPhase === 'init' ? '#ff9f0a' : '#30d158'; ctx.fill();
             } else if (body.label === 'upper') {
                 ctx.strokeRect(-55, -45, 110, 90); 
-                drawVerticalText(ctx, `上卦:${uN}`, textX, 0);   // 去掉了(111)二进制后缀
+                drawVerticalText(ctx, `上卦:${uN}`, textX, 0);   
                 ctx.beginPath(); ctx.arc(0, 0, 4, 0, 2 * Math.PI); ctx.fillStyle = '#30d158'; ctx.fill();
             } else if (body.label === 'lower') {
                 ctx.strokeRect(-55, -45, 110, 90); 
-                drawVerticalText(ctx, `下卦:${lN}`, textX, 0);   // 去掉了(111)二进制后缀
+                drawVerticalText(ctx, `下卦:${lN}`, textX, 0);  
                 ctx.beginPath(); ctx.arc(0, 0, 4, 0, 2 * Math.PI); ctx.fillStyle = '#30d158'; ctx.fill();
             }
             ctx.restore();
@@ -427,11 +499,9 @@
         });
         Composite.add(engine.world, activeBodies);
 
-        // 点火时仅更新一次DOM状态，拒绝性能阻塞
         document.getElementById('monitor').innerHTML = `引擎已点火，全速演算中...<br><br>左侧为本卦干涉轨道，右侧为变卦分流干涉。<br><br><span class="hl">注意左侧竖排文字：由于左边是初爻位(基座)，文字所在的那条边永远是卦象真实的“底部”！</span>`;
     }
 
-    // 每一帧只做最纯粹的向量计算，彻底剥离DOM逻辑
     Events.on(engine, 'beforeUpdate', () => {
         if(currentPhase === 'init') {
             if (Date.now() - startTime > WAIT_TIME) triggerActivePhase();
