@@ -911,19 +911,20 @@ body {
     <script>VibeRouter.init('oracle');</script>
     
 <!-- ========================================== -->
-    <!-- ⚡ THE VIBE ROUTER (直接內嵌版) ⚡ -->
+    <!-- ⚡ THE VIBE ROUTER (跨網域引流絕對路徑版) ⚡ -->
     <!-- ========================================== -->
     <script>
     var VibeRouter = (function() {
       'use strict';
 
+      // 1. 這裡全部寫死指向你的新網域 vibeiching.church
       var pages = {
-        index:    { title: 'THE VIBE · 天球首頁',  file: 'index.html' },
-        oracle:   { title: '占卜預言機 · Oracle',   file: 'VibeIChing_Oracle.html' }, /* 這裡指回它自己 */
-        bazi:     { title: '八字編譯器 · BaZi',     file: 'bazi.html' },
-        iching:   { title: '易經詳析 · I-Ching',    file: 'iching-detail.html' },
-        ancient:  { title: '賽博古文庫 · Text',      file: 'ancient-text.html' },
-        akashic:  { title: '阿卡西記錄 · Akashic',  file: 'akashic.html' }
+        index:    { title: 'THE VIBE · 天球首頁',  file: 'https://vibeiching.church/index.html' },
+        oracle:   { title: '占卜預言機 · Oracle',   file: 'https://vibeiching.church/oracle.html' },
+        bazi:     { title: '八字編譯器 · BaZi',     file: 'https://vibeiching.church/bazi.html' },
+        iching:   { title: '易經詳析 · I-Ching',    file: 'https://vibeiching.church/iching-detail.html' },
+        ancient:  { title: '賽博古文庫 · Text',      file: 'https://vibeiching.church/ancient-text.html' },
+        akashic:  { title: '阿卡西記錄 · Akashic',  file: 'https://vibeiching.church/akashic.html' }
       };
 
       var currentPage = null;
@@ -994,12 +995,12 @@ body {
       }
 
       function loadFirebaseAuth() {
-        // 注意：因為在同一個倉庫，相對路徑 'js/vibe-auth.js' 依然有效
         if (document.getElementById('vibe-firebase-auth')) return;
         var s = document.createElement('script');
         s.id = 'vibe-firebase-auth';
         s.type = 'module';
-        s.src = 'js/vibe-auth.js';
+        // 2. 將登入腳本也寫死指向新網域，確保跨網域登入正常運作
+        s.src = 'https://vibeiching.church/js/vibe-auth.js';
         document.head.appendChild(s);
       }
 
@@ -1030,7 +1031,8 @@ body {
 
         for (var i = 0; i < navItems.length; i++) {
           var item = navItems[i];
-          var isActive = item.id === currentPage ? ' active' : '';
+          // 如果當前頁面是舊的 oracle，就不給 active 高亮，鼓勵他們點擊
+          var isActive = ''; 
           navLinks += '<a href="' + pages[item.id].file + '" class="nav-link' + isActive + '" title="' + pages[item.id].title + '">' + item.icon + ' ' + item.label + '</a>';
         }
 
@@ -1046,8 +1048,9 @@ body {
           '</div>' +
         '</div>';
 
+        // 3. 這裡的 Logo 連結也指向新網域首頁
         var navHTML = '<nav id="vibe-global-nav" class="vibe-nav">' +
-          '<a href="index.html" class="vibe-nav-brand">' +
+          '<a href="https://vibeiching.church/index.html" class="vibe-nav-brand">' +
             '<span class="vibe-nav-brand-icon">⚡</span>' +
             '<span>THE VIBE</span>' +
           '</a>' +
@@ -1213,8 +1216,8 @@ body {
       };
     })();
 
-    // 觸發初始化，並將此頁面高亮為 "oracle"
-    VibeRouter.init('oracle');
+    // 啟動路由！因為是在舊頁面，我們傳入 'legacy_oracle'，這樣導航列上的任何選項被點擊都會跳去新網站。
+    VibeRouter.init('legacy_oracle');
     </script>
 
 </body>
