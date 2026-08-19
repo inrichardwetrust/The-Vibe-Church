@@ -10,10 +10,19 @@
         body { 
             font-family: 'Noto Serif TC', serif; background-color: #000; color: #00ff41;
             display: flex; flex-direction: column; min-height: 100vh; margin: 0;
-            padding: 30px 15px; box-sizing: border-box; overflow-x: hidden; overflow-y: auto;   
+            padding: 85px 15px 30px 15px; box-sizing: border-box; overflow-x: hidden; overflow-y: auto;   
         }
 
         #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; transform: translateZ(0); }
+
+        /* 語言切換按鈕 */
+        #lang-toggle {
+            position: absolute; top: 15px; right: 15px; background: rgba(0, 40, 0, 0.8);
+            border: 1px solid #00ff41; color: #00ff41; padding: 6px 12px; font-family: monospace;
+            font-size: 12px; font-weight: bold; cursor: pointer; z-index: 100;
+            border-radius: 3px; transition: all 0.3s; box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }    
+        #lang-toggle:hover { background: #00ff41; color: #000; box-shadow: 0 0 15px #00ff41; }
 
         .container { 
             position: relative; z-index: 10; background-color: rgba(0, 15, 0, 0.95); 
@@ -34,7 +43,6 @@
             40% { transform: translate(4px, -2px); } 60% { transform: translate(-2px, -1px); }
             80% { transform: translate(3px, 2px); } 100% { transform: translate(0, 0); }
         }
-
         @keyframes pixel-tear {
             0% { top: 10%; height: 15px; transform: translateX(10px); } 20% { top: 40%; height: 40px; transform: translateX(-15px); }
             40% { top: 75%; height: 10px; transform: translateX(20px); } 60% { top: 25%; height: 50px; transform: translateX(-10px); }
@@ -91,7 +99,6 @@
         }
         
         .shishen-tag { font-size: 10px; color: #00ff41; font-family: monospace; margin-top: 5px; background: rgba(0,50,0,0.5); padding: 2px; border-radius: 2px;}
-
         .log-line { font-size: 12px; color: #88cc88; font-family: monospace; text-align: center; border-bottom: 1px dashed rgba(0, 255, 65, 0.3); padding-bottom: 10px; margin-bottom: 10px; }
         
         .btn-group { display: flex; gap: 10px; width: 100%; flex-direction: column; }
@@ -114,48 +121,58 @@
     <canvas id="matrix"></canvas>
 
     <div class="container" id="sys-container">
+        <!-- 翻譯按鈕 -->
+        <button id="lang-toggle" onclick="switchLanguage()">🌐 EN</button>
+
         <h2>The Vibe</h2>
-        <div class="subtitle">[ 天機庫 API 授權網關 ]</div>
+        <div class="subtitle" id="ui-subtitle">[ 天機庫 API 授權網關 ]</div>
 
         <div class="flex-row">
             <div class="field-group">
-                <label class="field-label">■ 玩家代號 (姓名/暱稱)</label>
-                <div class="field-hint">Your Identity / Name</div>
+                <label class="field-label" id="ui-label-name">■ 玩家代號 (姓名/暱稱)</label>
+                <div class="field-hint" id="ui-hint-name">Your Identity / Name</div>
                 <input type="text" id="user-name" class="vibe-input" placeholder="例: Richard" autocomplete="off">
             </div>
             <div class="field-group">
-                <label class="field-label">■ 硬件規格 (性別)</label>
-                <div class="field-hint">Hardware / Gender</div>
+                <label class="field-label" id="ui-label-gender">■ 硬件規格 (性別)</label>
+                <div class="field-hint" id="ui-hint-gender">Hardware / Gender</div>
                 <select id="gender" class="vibe-input">
-                    <option value="1">乾造 (Male)</option>
-                    <option value="0">坤造 (Female)</option>
+                    <option value="1" id="opt-male">乾造 (Male)</option>
+                    <option value="0" id="opt-female">坤造 (Female)</option>
                 </select>
             </div>
         </div>
 
         <div class="field-group">
-            <label class="field-label">■ 曆法協議 (公曆/農曆)</label>
-            <div class="field-hint">Calendar Protocol</div>
+            <label class="field-label" id="ui-label-cal">■ 曆法協議 (公曆/農曆)</label>
+            <div class="field-hint" id="ui-hint-cal">Calendar Protocol</div>
             <select id="calendar-type" class="vibe-input">
-                <option value="solar">公曆 (Gregorian Calendar)</option>
-                <option value="lunar">農曆 (Lunar Calendar)</option>
+                <option value="solar" id="opt-solar">公曆 (Gregorian Calendar)</option>
+                <option value="lunar" id="opt-lunar">農曆 (Lunar Calendar)</option>
             </select>
+        </div>
+
+        <!-- 新增：快捷 12 碼輸入 -->
+        <div class="field-group" style="background: rgba(0,30,0,0.5); padding: 10px; border-radius: 4px; border: 1px dashed #005511;">
+            <label class="field-label" id="ui-label-quick">■ 快捷時間輸入 (12碼)</label>
+            <div class="field-hint" id="ui-hint-quick" style="margin-bottom: 8px;">格式: YYYYMMDDHHMM (例: 198101202005)</div>
+            <input type="number" id="quick-datetime" class="vibe-input" placeholder="198101202005" oninput="parseQuickInput(this)">
         </div>
 
         <div class="flex-row">
             <div class="field-group">
-                <label class="field-label">■ 降臨日期 (Birthday)</label>
+                <label class="field-label" id="ui-label-date">■ 降臨日期 (Birthday)</label>
                 <input type="date" id="birth-date" class="vibe-input" required>
             </div>
             <div class="field-group">
-                <label class="field-label">■ 降臨時刻 (Time)</label>
+                <label class="field-label" id="ui-label-time">■ 降臨時刻 (Time)</label>
                 <input type="time" id="birth-time" class="vibe-input" required>
             </div>
         </div>
 
         <div class="field-group">
-            <label class="field-label">■ 物理登錄點 (出生城市)</label>
-            <div class="field-hint">Location (用於計算真太陽時，例: Stockholm / 河南南阳)</div>
+            <label class="field-label" id="ui-label-loc">■ 物理登錄點 (出生城市)</label>
+            <div class="field-hint" id="ui-hint-loc">Location (用於計算真太陽時，例: Stockholm / 河南南阳)</div>
             <input type="text" id="location" class="vibe-input" placeholder="City Name">
         </div>
 
@@ -169,13 +186,142 @@
     </div>
 
     <script>
-        // Matrix 動畫代碼
+        // --- 全局變數緩存 (用於語言動態切換) ---
+        window.lastBaziData = null;
+        window.systemPromptZh = "";
+        window.systemPromptEn = "";
+
+        // --- 快捷輸入解析 ---
+        window.parseQuickInput = function(el) {
+            let val = el.value.trim();
+            if (val.length === 12) {
+                let y = val.substring(0,4);
+                let m = val.substring(4,6);
+                let d = val.substring(6,8);
+                let h = val.substring(8,10);
+                let min = val.substring(10,12);
+                document.getElementById('birth-date').value = `${y}-${m}-${d}`;
+                document.getElementById('birth-time').value = `${h}:${min}`;
+            }
+        };
+
+        // --- 語言切換邏輯 (i18n) ---
+        const userLang = (navigator.language || navigator.userLanguage || "zh").toLowerCase();
+        let currentLang = userLang.startsWith("zh") ? "zh" : "en";
+
+        const i18n = {
+            zh: {
+                toggleBtn: "🌐 EN",
+                subtitle: "[ 天機庫 API 授權網關 ]",
+                nameLabel: "■ 玩家代號 (姓名/暱稱)", nameHint: "Your Identity / Name", namePlace: "例: Richard",
+                genderLabel: "■ 硬件規格 (性別)", genderHint: "Hardware / Gender", optMale: "乾造 (Male)", optFemale: "坤造 (Female)",
+                calLabel: "■ 曆法協議 (公曆/農曆)", calHint: "Calendar Protocol", optSolar: "公曆 (Gregorian Calendar)", optLunar: "農曆 (Lunar Calendar)",
+                quickLabel: "■ 快捷時間輸入 (12碼)", quickHint: "格式: YYYYMMDDHHMM (例: 198101202005)", quickPlace: "輸入12位數字",
+                dateLabel: "■ 降臨日期 (Birthday)", timeLabel: "■ 降臨時刻 (Time)",
+                locLabel: "■ 物理登錄點 (出生城市)", locHint: "Location (用於計算真太陽時，例: Stockholm / 河南南阳)", locPlace: "City Name",
+                actionBtn: "獲取密鑰 (Generate Key)",
+                regenBtn: "重新編譯 (Re-Generate)",
+
+                errEmpty: "ERROR: 降臨日期與時間不能為空。",
+                errLib: "SYSTEM ERROR: 曆法庫未加載。",
+                statusCooling: "[ 系統冷卻中... 同步雲端協議 ]",
+                statusParsing: "[ 雲端協議與地理節點解析中... ]",
+                
+                outYr: "年", outMo: "月", outDy: "日", outHr: "時",
+                outZhuri: "[日主]", outScan: "[ 隱藏權限掃描 ]:",
+                
+                btnGemini: "🚀 注入 Gemini", btnGpt: "🚀 注入 ChatGPT", btnCopy: "📋 僅複製源代碼",
+                copiedRedirect: "[ 密鑰已複製，正在跳轉... ]", copiedOnly: "[ 已複製到剪貼板 ]",
+
+                payloadTitle: "=== 【玩家參數與環境日誌】 ===",
+                payloadId: "代號：", payloadSex: "性別：", payloadCal: "輸入基準：",
+                payloadSolar: "公曆座標：", payloadLunar: "農曆座標：", payloadNode: "網絡節點：",
+                payloadCodeTitle: "=== 【物理實例化源代碼】(絕對真值，嚴禁篡改) ===",
+                pYear: "【年柱】", pMonth: "【月柱】", pDay: "【日柱】", pTime: "【時柱】",
+                pConfig: "出廠配置：", pEnv: "運作環境：", pCore: "玩家核心：", pEnd: "終局結算：",
+                pBuff: "【神煞陣列 (隱藏 Buff/Bug)】",
+                pFooter: "請讀取上方代碼，生成 Mimir 的命運審計報告。"
+            },
+            en: {
+                toggleBtn: "🌐 中文",
+                subtitle: "[ Akashic Records API Gateway ]",
+                nameLabel: "■ Player ID (Name/Nickname)", nameHint: "Your Identity / Name", namePlace: "e.g. Richard",
+                genderLabel: "■ Hardware Specs (Gender)", genderHint: "Hardware / Gender", optMale: "Male (乾造)", optFemale: "Female (坤造)",
+                calLabel: "■ Calendar Protocol", calHint: "Calendar System", optSolar: "Gregorian Calendar", optLunar: "Lunar Calendar",
+                quickLabel: "■ Quick Datetime (12 digits)", quickHint: "Format: YYYYMMDDHHMM (e.g., 198101202005)", quickPlace: "Enter 12 digits",
+                dateLabel: "■ Spawn Date (Birthday)", timeLabel: "■ Spawn Time (Time)",
+                locLabel: "■ Physical Spawn Node (City)", locHint: "For True Solar Time calculation (e.g. Stockholm, Beijing)", locPlace: "City Name",
+                actionBtn: "Generate Key",
+                regenBtn: "Re-Generate Code",
+
+                errEmpty: "ERROR: Spawn Date and Time cannot be empty.",
+                errLib: "SYSTEM ERROR: Calendar library not loaded.",
+                statusCooling: "[ Cooling down... Syncing Protocol ]",
+                statusParsing: "[ Parsing Protocol and Geo-Node... ]",
+
+                outYr: "Yr", outMo: "Mo", outDy: "Dy", outHr: "Hr",
+                outZhuri: "[Core]", outScan: "[ Hidden Buff Scan ]:",
+                
+                btnGemini: "🚀 Inject to Gemini", btnGpt: "🚀 Inject to ChatGPT", btnCopy: "📋 Copy Source Code",
+                copiedRedirect: "[ Key Copied, Redirecting... ]", copiedOnly: "[ Copied to Clipboard ]",
+
+                payloadTitle: "=== [ Player Params & Environment Log ] ===",
+                payloadId: "ID: ", payloadSex: "Gender: ", payloadCal: "Input Base: ",
+                payloadSolar: "Gregorian Coord: ", payloadLunar: "Lunar Coord: ", payloadNode: "Network Node: ",
+                payloadCodeTitle: "=== [ Physical Instantiation Source Code ] (Absolute Truth) ===",
+                pYear: "[Year Pillar]", pMonth: "[Month Pillar]", pDay: "[Day Pillar]", pTime: "[Time Pillar]",
+                pConfig: "Factory Config: ", pEnv: "Operation Env: ", pCore: "Player Core: ", pEnd: "Endgame Settlement: ",
+                pBuff: "[ Shensha Array (Hidden Buff/Bug) ]",
+                pFooter: "Please read the above code and generate Mimir's Fate Audit Report."
+            }
+        };
+
+        function updateUI() {
+            const l = i18n[currentLang];
+            document.getElementById('lang-toggle').innerText = l.toggleBtn;
+            document.getElementById('ui-subtitle').innerText = l.subtitle;
+            document.getElementById('ui-label-name').innerText = l.nameLabel;
+            document.getElementById('ui-hint-name').innerText = l.nameHint;
+            document.getElementById('user-name').placeholder = l.namePlace;
+            document.getElementById('ui-label-gender').innerText = l.genderLabel;
+            document.getElementById('ui-hint-gender').innerText = l.genderHint;
+            document.getElementById('opt-male').innerText = l.optMale;
+            document.getElementById('opt-female').innerText = l.optFemale;
+            document.getElementById('ui-label-cal').innerText = l.calLabel;
+            document.getElementById('ui-hint-cal').innerText = l.calHint;
+            document.getElementById('opt-solar').innerText = l.optSolar;
+            document.getElementById('opt-lunar').innerText = l.optLunar;
+            
+            // 新增的快捷輸入欄位翻譯
+            document.getElementById('ui-label-quick').innerText = l.quickLabel;
+            document.getElementById('ui-hint-quick').innerText = l.quickHint;
+            document.getElementById('quick-datetime').placeholder = l.quickPlace;
+
+            document.getElementById('ui-label-date').innerText = l.dateLabel;
+            document.getElementById('ui-label-time').innerText = l.timeLabel;
+            document.getElementById('ui-label-loc').innerText = l.locLabel;
+            document.getElementById('ui-hint-loc').innerText = l.locHint;
+            document.getElementById('location').placeholder = l.locPlace;
+            
+            const actionBtn = document.getElementById('action-btn');
+            if(!actionBtn.disabled) { actionBtn.innerText = window.lastBaziData ? l.regenBtn : l.actionBtn; }
+
+            // 如果已經有生成結果，直接呼叫渲染引擎刷新結果（不用重新算地理位置）
+            if (window.lastBaziData) { renderResult(); }
+        }
+
+        window.switchLanguage = function() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            updateUI();
+        };
+        window.addEventListener('DOMContentLoaded', updateUI);
+
+        // --- Matrix 動畫代碼 ---
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d', { alpha: false }); 
         const fontSize = 16; 
         const coreWords = "0101XYZ甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥".split('');
         let columns, drops, headChars;
-        
         let isMatrixRunning = true;
 
         function resizeCanvas() {
@@ -204,7 +350,7 @@
         }
         setInterval(draw, 50);
 
-        // 全局計數器
+        // --- 全局計數器 ---
         const namespace = 'ricschild_vibe_theology';
         const key = 'bazi_compiler_clicks';
         async function fetchGlobalCount() {
@@ -218,6 +364,7 @@
 
         function copyAndJump(btnElement, url) {
             if(window.currentPayload) {
+                const l = i18n[currentLang];
                 const tempTextArea = document.createElement("textarea");
                 tempTextArea.value = window.currentPayload;
                 document.body.appendChild(tempTextArea);
@@ -225,7 +372,7 @@
                 try {
                     document.execCommand('copy');
                     const oldText = btnElement.innerText;
-                    btnElement.innerText = "[ 密鑰已複製，正在跳轉... ]";
+                    btnElement.innerText = l.copiedRedirect;
                     btnElement.style.background = "#ffffff"; btnElement.style.color = "#000";
                     setTimeout(() => {
                         window.open(url, "_blank");
@@ -233,13 +380,14 @@
                         btnElement.style.background = "#00ff41"; 
                         btnElement.style.color = "#000";
                     }, 500);
-                } catch (err) { alert('瀏覽器阻擋了自動複製，請確保您在安全的環境下運行。'); }
+                } catch (err) { alert('Browser blocked copying. / 瀏覽器阻擋了自動複製。'); }
                 document.body.removeChild(tempTextArea);
             }
         }
 
         function copyOnly(btnElement) {
             if(window.currentPayload) {
+                const l = i18n[currentLang];
                 const tempTextArea = document.createElement("textarea");
                 tempTextArea.value = window.currentPayload;
                 document.body.appendChild(tempTextArea);
@@ -247,7 +395,7 @@
                 try {
                     document.execCommand('copy');
                     const oldText = btnElement.innerText;
-                    btnElement.innerText = "[ 已複製到剪貼板 ]";
+                    btnElement.innerText = l.copiedOnly;
                     btnElement.style.background = "#ffffff";
                     btnElement.style.color = "#000";
                     setTimeout(() => {
@@ -255,14 +403,14 @@
                         btnElement.style.background = "rgba(0, 40, 0, 0.8)";
                         btnElement.style.color = "#00ff41";
                     }, 2000);
-                } catch (err) { alert('瀏覽器阻擋了自動複製，請手動框選複製。'); }
+                } catch (err) { alert('Browser blocked copying. / 瀏覽器阻擋了自動複製。'); }
                 document.body.removeChild(tempTextArea);
             }
         }
 
         function calculateCoreShenSha(yGan, yZhi, dGan, dZhi, zhis) {
-            let s = [];
-            let add = (name) => { if (!s.includes(name)) s.push(name); };
+            let sZh = []; let sEn = [];
+            let add = (zhName, enName) => { if (!sZh.includes(zhName)) { sZh.push(zhName); sEn.push(enName); } };
             
             let huagaiMap = {'亥':'未','卯':'未','未':'未', '寅':'戌','午':'戌','戌':'戌', '巳':'丑','酉':'丑','丑':'丑', '申':'辰','子':'辰','辰':'辰'};
             let yimaMap = {'亥':'巳','卯':'巳','未':'巳', '寅':'申','午':'申','戌':'申', '巳':'亥','酉':'亥','丑':'亥', '申':'寅','子':'寅','辰':'寅'};
@@ -281,42 +429,44 @@
             };
 
             zhis.forEach(zhi => {
-                if (zhi === huagaiMap[yZhi] || zhi === huagaiMap[dZhi]) add('華蓋');
-                if (zhi === yimaMap[yZhi] || zhi === yimaMap[dZhi]) add('驛馬');
-                if (zhi === taohuaMap[yZhi] || zhi === taohuaMap[dZhi]) add('桃花');
-                if (zhi === luMap[dGan]) add('祿神');
-                if (zhi === renMap[dGan]) add('羊刃');
-                if (tianyi(dGan, zhi) || tianyi(yGan, zhi)) add('天乙貴人');
+                if (zhi === huagaiMap[yZhi] || zhi === huagaiMap[dZhi]) add('華蓋', 'HuaGai');
+                if (zhi === yimaMap[yZhi] || zhi === yimaMap[dZhi]) add('驛馬', 'YiMa');
+                if (zhi === taohuaMap[yZhi] || zhi === taohuaMap[dZhi]) add('桃花', 'TaoHua');
+                if (zhi === luMap[dGan]) add('祿神', 'LuShen');
+                if (zhi === renMap[dGan]) add('羊刃', 'YangRen');
+                if (tianyi(dGan, zhi) || tianyi(yGan, zhi)) add('天乙貴人', 'TianYi');
             });
 
             let kuigang = ['戊戌','庚辰','庚戌','壬辰'];
-            if (kuigang.includes(dGan + dZhi)) add('魁罡');
+            if (kuigang.includes(dGan + dZhi)) add('魁罡', 'KuiGang');
 
-            return s.length > 0 ? s.join('、 ') : '無特殊神煞';
+            return {
+                zh: sZh.length > 0 ? sZh.join('、 ') : '無特殊神煞',
+                en: sEn.length > 0 ? sEn.join(', ') : 'No Special Shensha'
+            };
         }
 
         let isCoolingDown = false;
 
         async function executeCompilation() {
             if (isCoolingDown) return;
-
+            const l = i18n[currentLang];
             const btn = document.getElementById('action-btn');
             const container = document.getElementById('sys-container');
             const out = document.getElementById('output');
             
-            const name = document.getElementById('user-name').value.trim() || "Unknown User";
-            const genderSelect = document.getElementById('gender');
-            const genderStr = genderSelect.options[genderSelect.selectedIndex].text;
+            const name = document.getElementById('user-name').value.trim() || (currentLang === 'zh' ? "未知用戶" : "Unknown User");
+            const genderValue = document.getElementById('gender').value; // '1' 或 '0'
             const calType = document.getElementById('calendar-type').value;
             
             const dateStr = document.getElementById('birth-date').value;
             const timeStr = document.getElementById('birth-time').value;
             const locationStr = document.getElementById('location').value.trim();
 
-            if(!dateStr || !timeStr) { alert("ERROR: 降臨日期與時間不能為空。"); return; }
-            if (typeof Solar === 'undefined' || typeof Lunar === 'undefined') { alert("SYSTEM ERROR: 曆法庫未加載。"); return; }
+            if(!dateStr || !timeStr) { alert(l.errEmpty); return; }
+            if (typeof Solar === 'undefined' || typeof Lunar === 'undefined') { alert(l.errLib); return; }
 
-            isCoolingDown = true; btn.disabled = true; btn.innerText = "[ 系統冷卻中... 同步雲端協議 ]";
+            isCoolingDown = true; btn.disabled = true; btn.innerText = l.statusCooling;
             fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`).then(res => res.json()).then(data => document.getElementById('global-counter').innerText = data.count).catch(e => console.log('Counter API block'));
 
             out.style.display = 'flex'; container.classList.add('glitch-pixel-active');
@@ -325,32 +475,26 @@
             let scrambleInterval = setInterval(() => {
                 const randomHex = coreWords[Math.floor(Math.random() * coreWords.length)];
                 out.innerHTML = `<div class="oracle-text" style="color: #fff; text-align:center; text-shadow: 2px 0px red, -2px 0px cyan;">
-                    <div style="font-size: 36px; margin-bottom: 10px;">${randomHex}</div>[ 雲端協議與地理節點解析中... ]
+                    <div style="font-size: 36px; margin-bottom: 10px;">${randomHex}</div>${l.statusParsing}
                 </div>`;
             }, 50); 
 
             try {
-                // ============================================
-                // 1. 動態加載 GitHub 云端 Prompt 提示词
-                // ============================================
-                let systemPrompt = "";
-                try {
-                    const promptRes = await fetch('https://inrichardwetrust.github.io/The-Vibe-Church/assets/vibe_prompt_bazi.json', { cache: 'no-cache' });
-                    if (!promptRes.ok) throw new Error(`HTTP Error ${promptRes.status}`);
-                    let rawText = await promptRes.text();
+                // 讀取 Prompt
+                if (!window.systemPromptZh) {
                     try {
-                        let jsonObj = JSON.parse(rawText);
-                        systemPrompt = jsonObj.prompt || jsonObj.system_prompt || jsonObj.systemPrompt || rawText;
-                    } catch (parseErr) {
-                        systemPrompt = rawText;
-                    }
-                } catch(err) {
-                    throw new Error(`獲取 GitHub 雲端提示詞失敗: ${err.message}`);
+                        const promptRes = await fetch('https://inrichardwetrust.github.io/The-Vibe-Church/assets/vibe_prompt_bazi.json', { cache: 'no-cache' });
+                        if (promptRes.ok) {
+                            let rawText = await promptRes.text();
+                            try {
+                                let jsonObj = JSON.parse(rawText);
+                                window.systemPromptZh = jsonObj.prompt || jsonObj.system_prompt || jsonObj.systemPrompt || rawText;
+                                window.systemPromptEn = jsonObj.prompt_en || window.systemPromptZh;
+                            } catch (e) { window.systemPromptZh = rawText; window.systemPromptEn = rawText; }
+                        }
+                    } catch(err) { console.warn("Prompt Fetch Error"); }
                 }
 
-                // ============================================
-                // 2. 基准历法实例（显示用，锁死用户输入）
-                // ============================================
                 let [year, month, day] = dateStr.split('-').map(Number);
                 let [hour, minute] = timeStr.split(':').map(Number);
 
@@ -363,16 +507,12 @@
                     baseSolar = baseLunar.getSolar();
                 }
 
-                // ============================================
-                // 3. 地理与真太阳时计算（多語言穿透升級版）
-                // ============================================
-                let isTrueSolar = false;
-                let locationMsg = "未填寫地點，默認平太陽時 (120°E)";
+                let locMsgZh = "未填寫地點，默認平太陽時 (120°E)";
+                let locMsgEn = "No location provided, defaulting to Mean Solar Time (120°E)";
                 let calcDateObj = new Date(baseSolar.getYear(), baseSolar.getMonth() - 1, baseSolar.getDay(), hour, minute);
 
                 if (locationStr) {
                     try {
-                        // 💡 升級：加入 &namedetails=1，讓 API 返回該節點的所有多語言別名
                         const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationStr)}&format=json&limit=1&namedetails=1&accept-language=zh,en`);
                         const data = await res.json();
                         
@@ -380,16 +520,12 @@
                             let locLower = locationStr.toLowerCase();
                             let display = (data[0].display_name || "").toLowerCase();
                             let nativeName = (data[0].name || "").toLowerCase();
-                            
-                            // 💡 【多維度鎖死機制】：檢查 (1) 顯示全稱 (2) 當地原名 (3) 所有已知語言的翻譯字典
                             let isValidMatch = display.includes(locLower) || nativeName.includes(locLower);
                             
-                            // 如果前兩者沒命中，遍歷該節點的所有多語言字典進行精確核對
                             if (!isValidMatch && data[0].namedetails) {
                                 for (let key in data[0].namedetails) {
                                     if (data[0].namedetails[key].toLowerCase().includes(locLower)) {
-                                        isValidMatch = true;
-                                        break;
+                                        isValidMatch = true; break;
                                     }
                                 }
                             }
@@ -402,95 +538,323 @@
                                 let timeDiff = (lon - refLon) * 4; 
                                 calcDateObj.setMinutes(calcDateObj.getMinutes() + timeDiff);
                                 
-                                locationMsg = `鎖定坐標 (${lon.toFixed(2)}°E) | 底層八字套用太陽時差 ${timeDiff > 0 ? '+' : ''}${timeDiff.toFixed(0)} 分鐘`; 
-                                isTrueSolar = true;
+                                locMsgZh = `鎖定坐標 (${lon.toFixed(2)}°E) | 底層八字套用太陽時差 ${timeDiff > 0 ? '+' : ''}${timeDiff.toFixed(0)} 分鐘`;
+                                locMsgEn = `Coordinates locked (${lon.toFixed(2)}°E) | Applied True Solar offset ${timeDiff > 0 ? '+' : ''}${timeDiff.toFixed(0)} min`;
                             } else {
-                                // 模糊匹配徹底失敗，拒絕瞎編
-                                locationMsg = `⚠️ 物理節點無效，拒絕模糊匹配，降級為平太陽時`;
+                                locMsgZh = "⚠️ 物理節點無效，拒絕模糊匹配，降級為平太陽時"; locMsgEn = "⚠️ Invalid physical node, degraded to Mean Solar Time";
                             }
                         } else { 
-                            locationMsg = `⚠️ 查無此節點 (${locationStr})，降級為平太陽時`; 
+                            locMsgZh = `⚠️ 查無此節點 (${locationStr})`; locMsgEn = `⚠️ Node not found (${locationStr})`;
                         }
                     } catch(err) { 
-                        locationMsg = `⚠️ 節點庫響應超時，降級為平太陽時`; 
+                        locMsgZh = "⚠️ 節點庫響應超時，降級為平太陽時"; locMsgEn = "⚠️ Node DB timeout, degraded to Mean Solar Time";
                     }
                 }
 
-                // 起出真实的八字
                 let calcSolar = Solar.fromYmdHms(calcDateObj.getFullYear(), calcDateObj.getMonth() + 1, calcDateObj.getDate(), calcDateObj.getHours(), calcDateObj.getMinutes(), 0);
                 let calcLunar = calcSolar.getLunar();
                 let baziObj = calcLunar.getEightChar();
 
-                let yPillar = baziObj.getYear(); let mPillar = baziObj.getMonth(); let dPillar = baziObj.getDay(); let tPillar = baziObj.getTime();
-                let yTg = baziObj.getYearShiShenGan() || "比肩"; let mTg = baziObj.getMonthShiShenGan() || "比肩";
-                let tTg = baziObj.getTimeShiShenGan() || "比肩"; let dZhiTg = baziObj.getDayShiShenZhi()[0] || "比肩"; 
+                let allZhis = [baziObj.getYearZhi(), baziObj.getMonthZhi(), baziObj.getDayZhi(), baziObj.getTimeZhi()];
+                let shenShaDict = calculateCoreShenSha(baziObj.getYearGan(), baziObj.getYearZhi(), baziObj.getDayGan(), baziObj.getDayZhi(), allZhis);
 
-                let yGan = baziObj.getYearGan(); let yZhi = baziObj.getYearZhi();
-                let mZhi = baziObj.getMonthZhi(); let dGan = baziObj.getDayGan(); let dZhi = baziObj.getDayZhi();
-                let tZhi = baziObj.getTimeZhi(); let allZhis = [yZhi, mZhi, dZhi, tZhi];
-                let uniqueShenSha = calculateCoreShenSha(yGan, yZhi, dGan, dZhi, allZhis);
-
-                // ============================================
-                // 4. 裝填終極 Payload
-                // ============================================
-                let packetStr = systemPrompt.trim() + "\n\n";
-                packetStr += `=== 【玩家參數與環境日誌】 ===\n`;
-                packetStr += `代號：${name}\n`;
-                packetStr += `性別：${genderStr}\n`;
-                packetStr += `輸入基準：${calType === 'solar' ? '公曆 (Solar)' : '農曆 (Lunar)'}\n`;
-                packetStr += `公曆座標：${baseSolar.getYear()}年${baseSolar.getMonth()}月${baseSolar.getDay()}日 ${timeStr}\n`;
-                packetStr += `農曆座標：${baseLunar.getYear()}年${baseLunar.getMonthInChinese()}月${baseLunar.getDayInChinese()} ${timeStr}\n`;
-                packetStr += `網絡節點：${locationStr || '未提供'} [${locationMsg}]\n`;
-                packetStr += `=========================\n`;
-                packetStr += `=== 【物理實例化源代碼】(絕對真值，嚴禁篡改) ===\n`;
-                packetStr += `【年柱】：${yPillar} (出廠配置：${yTg})\n`;
-                packetStr += `【月柱】：${mPillar} (運作環境：${mTg})\n`;
-                packetStr += `【日柱】：${dPillar} [核心 CPU] (玩家核心：${dZhiTg})\n`;
-                packetStr += `【時柱】：${tPillar} (終局結算：${tTg})\n\n`;
-                packetStr += `【神煞陣列 (隱藏 Buff/Bug)】：\n[ ${uniqueShenSha} ]\n`;
-                packetStr += `=========================\n`;
-                packetStr += `請讀取上方代碼，生成 Mimir 的命運審計報告。`;
-                
-                window.currentPayload = packetStr;
+                // --- 緩存結果 (讓切換語言時可以秒刷新) ---
+                window.lastBaziData = {
+                    name: name, genderValue: genderValue, calType: calType, timeStr: timeStr, locationStr: locationStr,
+                    sYear: baseSolar.getYear(), sMonth: baseSolar.getMonth(), sDay: baseSolar.getDay(),
+                    lYear: baseLunar.getYear(), lMonth: baseLunar.getMonthInChinese(), lDay: baseLunar.getDayInChinese(),
+                    locMsgZh: locMsgZh, locMsgEn: locMsgEn,
+                    yPillar: baziObj.getYear(), mPillar: baziObj.getMonth(), dPillar: baziObj.getDay(), tPillar: baziObj.getTime(),
+                    yTg: baziObj.getYearShiShenGan() || "比肩", mTg: baziObj.getMonthShiShenGan() || "比肩",
+                    tTg: baziObj.getTimeShiShenGan() || "比肩", dZhiTg: baziObj.getDayShiShenZhi()[0] || "比肩",
+                    shenShaZh: shenShaDict.zh, shenShaEn: shenShaDict.en
+                };
 
                 const elapsedTime = Date.now() - startTime;
-                const minimumWaitTime = 1500; 
-                if (elapsedTime < minimumWaitTime) {
-                    await new Promise(resolve => setTimeout(resolve, minimumWaitTime - elapsedTime));
-                }
+                if (elapsedTime < 1500) { await new Promise(resolve => setTimeout(resolve, 1500 - elapsedTime)); }
 
                 clearInterval(scrambleInterval); container.classList.remove('glitch-pixel-active'); 
-
-                out.innerHTML = `
-                <div class="oracle-text">
-                    <div class="log-line">[ ${locationMsg} ]</div>
-                    <div class="bazi-grid">
-                        <div class="pillar"><div>時</div><div class="stem-branch">${tPillar}</div><div class="shishen-tag">${tTg}</div></div>
-                        <div class="pillar"><div>日</div><div class="stem-branch" style="color:#FFD700; border-color:#FFD700;">${dPillar}</div><div class="shishen-tag" style="color:#FFD700;">[日主]</div></div>
-                        <div class="pillar"><div>月</div><div class="stem-branch">${mPillar}</div><div class="shishen-tag">${mTg}</div></div>
-                        <div class="pillar"><div>年</div><div class="stem-branch">${yPillar}</div><div class="shishen-tag">${yTg}</div></div>
-                    </div>
-                    
-                    <div style="font-size: 13px; color: #aaffaa; text-align: center; margin-bottom: 15px; font-family: monospace; border-top: 1px dashed #005511; padding-top: 10px;">
-                        [ 隱藏權限掃描 ]: <span style="color:#fff; font-weight:bold;">${uniqueShenSha}</span>
-                    </div>
-
-                    <div style="font-size: 12px; color: #00ff41; margin-bottom: 10px; text-align: center;">[ 選擇節點並注入代碼 ]</div>
-                    
-                    <div class="btn-group">
-                        <button type="button" class="copy-btn ai-btn" onclick="copyAndJump(this, 'https://gemini.google.com/')">🚀 注入 Gemini</button>
-                        <button type="button" class="copy-btn ai-btn" onclick="copyAndJump(this, 'https://chatgpt.com/')">🚀 注入 ChatGPT</button>
-                        <button type="button" class="copy-btn" onclick="copyOnly(this)">📋 僅複製源代碼</button>
-                    </div>
-                </div>`;
+                renderResult(); // 呼叫渲染引擎畫出結果
 
             } catch (err) {
                 clearInterval(scrambleInterval); container.classList.remove('glitch-pixel-active'); 
                 out.innerHTML = `<div style="color:red; font-family:monospace; text-align:center;">SYSTEM ERROR:<br>${err.message}</div>`;
             } finally {
-                setTimeout(() => { isCoolingDown = false; btn.innerText = "重新編譯 (Re-Generate)"; btn.disabled = false; }, 3000);
+                setTimeout(() => { isCoolingDown = false; btn.innerText = l.regenBtn; btn.disabled = false; }, 1000);
             }
         }
+
+        // --- 渲染引擎 (支援動態多語系切換) ---
+        function renderResult() {
+            if (!window.lastBaziData) return;
+            const l = i18n[currentLang];
+            const d = window.lastBaziData;
+            const out = document.getElementById('output');
+
+            const genderStr = d.genderValue === '1' ? l.optMale : l.optFemale;
+            const calStr = d.calType === 'solar' ? l.optSolar : l.optLunar;
+            const locMsg = currentLang === 'zh' ? d.locMsgZh : d.locMsgEn;
+            const sSha = currentLang === 'zh' ? d.shenShaZh : d.shenShaEn;
+            const prompt = currentLang === 'zh' ? window.systemPromptZh : window.systemPromptEn;
+
+            let packetStr = prompt.trim() + "\n\n";
+            packetStr += `${l.payloadTitle}\n`;
+            packetStr += `${l.payloadId}${d.name}\n`;
+            packetStr += `${l.payloadSex}${genderStr}\n`;
+            packetStr += `${l.payloadCal}${calStr}\n`;
+            packetStr += `${l.payloadSolar}${d.sYear}-${d.sMonth}-${d.sDay} ${d.timeStr}\n`;
+            packetStr += `${l.payloadLunar}${d.lYear}-${d.lMonth}-${d.lDay} ${d.timeStr}\n`;
+            packetStr += `${l.payloadNode}${d.locationStr || (currentLang==='zh'?'未提供':'N/A')} [${locMsg}]\n`;
+            packetStr += `=========================\n`;
+            packetStr += `${l.payloadCodeTitle}\n`;
+            packetStr += `${l.pYear}：${d.yPillar} (${l.pConfig}${d.yTg})\n`;
+            packetStr += `${l.pMonth}：${d.mPillar} (${l.pEnv}${d.mTg})\n`;
+            packetStr += `${l.pDay}：${d.dPillar} ${currentLang==='en'?'[Core CPU]':'[核心 CPU]'} (${l.pCore}${d.dZhiTg})\n`;
+            packetStr += `${l.pTime}：${d.tPillar} (${l.pEnd}${d.tTg})\n\n`;
+            packetStr += `${l.pBuff}：\n[ ${sSha} ]\n`;
+            packetStr += `=========================\n`;
+            packetStr += `${l.pFooter}`;
+            
+            window.currentPayload = packetStr;
+
+            out.innerHTML = `
+            <div class="oracle-text">
+                <div class="log-line">[ ${locMsg} ]</div>
+                <div class="bazi-grid">
+                    <div class="pillar"><div>${l.outHr}</div><div class="stem-branch">${d.tPillar}</div><div class="shishen-tag">${d.tTg}</div></div>
+                    <div class="pillar"><div>${l.outDy}</div><div class="stem-branch" style="color:#FFD700; border-color:#FFD700;">${d.dPillar}</div><div class="shishen-tag" style="color:#FFD700;">${l.outZhuri}</div></div>
+                    <div class="pillar"><div>${l.outMo}</div><div class="stem-branch">${d.mPillar}</div><div class="shishen-tag">${d.mTg}</div></div>
+                    <div class="pillar"><div>${l.outYr}</div><div class="stem-branch">${d.yPillar}</div><div class="shishen-tag">${d.yTg}</div></div>
+                </div>
+                
+                <div style="font-size: 13px; color: #aaffaa; text-align: center; margin-bottom: 15px; font-family: monospace; border-top: 1px dashed #005511; padding-top: 10px;">
+                    ${l.outScan} <span style="color:#fff; font-weight:bold;">${sSha}</span>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="button" class="copy-btn ai-btn" onclick="copyAndJump(this, 'https://gemini.google.com/')">${l.btnGemini}</button>
+                    <button type="button" class="copy-btn ai-btn" onclick="copyAndJump(this, 'https://chatgpt.com/')">${l.btnGpt}</button>
+                    <button type="button" class="copy-btn" onclick="copyOnly(this)">${l.btnCopy}</button>
+                </div>
+            </div>`;
+        }
+    </script>
+
+    <!-- ========================================== -->
+    <!-- ⚡ THE VIBE ROUTER (跨網域引流絕對路徑版) ⚡ -->
+    <!-- ========================================== -->
+    <script>
+    var VibeRouter = (function() {
+      'use strict';
+
+      var pages = {
+        index:    { title: 'THE VIBE · 天球首頁',  file: 'https://vibeiching.church/index.html' },
+        oracle:   { title: '占卜預言機 · Oracle',   file: 'https://vibeiching.church/oracle.html' },
+        bazi:     { title: '八字編譯器 · BaZi',     file: 'https://vibeiching.church/bazi.html' },
+        iching:   { title: '易經詳析 · I-Ching',    file: 'https://vibeiching.church/iching-detail.html' },
+        ancient:  { title: '賽博古文庫 · Text',      file: 'https://vibeiching.church/ancient-text.html' },
+        akashic:  { title: '阿卡西記錄 · Akashic',  file: 'https://vibeiching.church/akashic.html' }
+      };
+
+      var currentPage = null;
+
+      function getUser() { try { return JSON.parse(localStorage.getItem('vibe_user') || 'null'); } catch(e) { return null; } }
+      function setUser(u) { if (u && typeof u.vibeBalance === 'undefined') { u.vibeBalance = 2500; } localStorage.setItem('vibe_user', JSON.stringify(u)); }
+      function clearUser() { localStorage.removeItem('vibe_user'); }
+
+      function getVibeBalance() { var u = getUser(); return u ? (u.vibeBalance || 0) : 0; }
+      function updateVibeBalance(delta) {
+        var u = getUser(); if (!u) return false;
+        u.vibeBalance = (u.vibeBalance || 0) + delta; setUser(u); updateNavAuthUI(u); return true;
+      }
+
+      function getCheckinState() {
+        return { date: localStorage.getItem('vibe-checkin-date') || '', streak: parseInt(localStorage.getItem('vibe-checkin-streak') || '0') };
+      }
+      
+      function doCheckin() {
+        var user = getUser(); if (!user) { openLoginModal(); return; }
+        var today = new Date().toDateString(); var state = getCheckinState();
+        if (state.date === today) { return; }
+        var yesterday = new Date(Date.now() - 86400000).toDateString();
+        var streak = (state.date === yesterday) ? state.streak + 1 : 1;
+        
+        localStorage.setItem('vibe-checkin-date', today);
+        localStorage.setItem('vibe-checkin-streak', streak.toString());
+        updateVibeBalance(50); updateNavAuthUI();
+        var btn = document.getElementById('vibe-nav-checkin-btn');
+        if (btn) { btn.textContent = '✔ x' + streak + '連 (+50)'; btn.style.color = '#FFDF73'; }
+      }
+
+      function initGoogleAnalytics() {
+        var gaId = 'G-RJECC1CREP';
+        if (document.getElementById('vibe-ga-script')) return;
+        var script = document.createElement('script'); script.id = 'vibe-ga-script'; script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+        document.head.appendChild(script); window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);} window.gtag = gtag; gtag('js', new Date()); gtag('config', gaId);
+      }
+
+      function loadFirebaseAuth() {
+        if (document.getElementById('vibe-firebase-auth')) return;
+        var s = document.createElement('script'); s.id = 'vibe-firebase-auth'; s.type = 'module';
+        s.src = 'https://vibeiching.church/js/vibe-auth.js'; document.head.appendChild(s);
+      }
+
+      function init(pageId) {
+        currentPage = pageId; injectStyles(); renderNav(); loadFirebaseAuth(); initGoogleAnalytics();
+        setTimeout(restoreAuthFromStorage, 100);
+      }
+
+      function renderNav() {
+        var existingNav = document.getElementById('vibe-global-nav'); if (existingNav) existingNav.remove();
+        var existingModal = document.getElementById('vibe-login-modal'); if (existingModal) existingModal.remove();
+
+        var navLinks = '';
+        var navItems = [
+          { id: 'index',   label: '天球',    icon: '◉' }, { id: 'oracle',  label: '占卜',    icon: '◎' },
+          { id: 'bazi',    label: '八字',    icon: '☰' }, { id: 'iching',  label: '易經',    icon: '☯' },
+          { id: 'ancient', label: '古文庫',  icon: '字' }, { id: 'akashic', label: '阿卡西',  icon: '✦' }
+        ];
+
+        for (var i = 0; i < navItems.length; i++) {
+          var item = navItems[i]; var isActive = '';
+          navLinks += '<a href="' + pages[item.id].file + '" class="nav-link' + isActive + '" title="' + pages[item.id].title + '">' + item.icon + ' ' + item.label + '</a>';
+        }
+
+        var authPanel = '<div class="vibe-nav-auth" id="vibe-nav-auth">' +
+          '<div id="vibe-nav-user-info" style="display:none;" class="vibe-nav-user-info">' +
+            '<span id="vibe-nav-balance" class="vibe-nav-balance" title="$VIBE 積分">💰 0</span>' +
+            '<span id="vibe-nav-username" class="vibe-nav-username"></span>' +
+            '<button id="vibe-nav-checkin-btn" class="vibe-nav-checkin-btn" onclick="VibeRouter.checkin()">✦ 簽到</button>' +
+            '<button class="vibe-nav-logout-btn" onclick="VibeRouter.logout()">登出</button>' +
+          '</div>' +
+          '<div id="vibe-nav-login-btns" class="vibe-nav-login-btns">' +
+            '<button class="vibe-nav-login-trigger" onclick="VibeRouter.openLoginModal()">⚡ 登入</button>' +
+          '</div>' +
+        '</div>';
+
+        var navHTML = '<nav id="vibe-global-nav" class="vibe-nav">' +
+          '<a href="https://vibeiching.church/index.html" class="vibe-nav-brand">' +
+            '<span class="vibe-nav-brand-icon">⚡</span><span>THE VIBE</span>' +
+          '</a>' +
+          '<div id="vibe-nav-links" class="vibe-nav-links">' + navLinks + '</div>' +
+          '<div class="vibe-nav-right-controls">' + authPanel +
+            '<div class="vibe-mobile-menu-btn" onclick="document.getElementById(\'vibe-nav-links\').classList.toggle(\'show\')">☰</div>' +
+          '</div></nav>';
+
+        var modalHTML = '<div id="vibe-login-modal" class="vibe-login-modal-overlay" onclick="VibeRouter.closeLoginModal(event)">' +
+          '<div class="vibe-login-modal-box">' +
+            '<div class="vibe-login-modal-header">' +
+              '<div class="vibe-login-modal-title">⚡ THE VIBE · 接入認證</div>' +
+              '<div class="vibe-login-modal-subtitle">選擇您的真實神經鏈接節點</div>' +
+            '</div>' +
+            '<div class="vibe-login-modal-body" id="vibe-login-modal-body"></div>' +
+            '<div class="vibe-login-modal-footer">新節點接入將自動空投 2500 $VIBE 積分</div>' +
+          '</div></div>';
+
+        document.body.insertAdjacentHTML('afterbegin', navHTML + modalHTML);
+      }
+
+      function injectStyles() {
+        if (document.getElementById('vibe-router-styles')) return;
+        var style = document.createElement('style'); style.id = 'vibe-router-styles';
+        style.textContent = '' +
+          '.vibe-nav { position:fixed; top:0; left:0; width:100%; z-index:999999; display:flex; align-items:center; padding:12px 24px; background:rgba(5,5,5,0.95); backdrop-filter:blur(10px); border-bottom:1px solid #222; font-family:monospace; box-sizing:border-box; }' +
+          '.vibe-nav-brand { display:flex; align-items:center; gap:8px; text-decoration:none; color:#00ff41; font-weight:bold; font-size:16px; letter-spacing:1px; margin-right:20px; }' +
+          '.vibe-nav-links { display:flex; gap:8px; flex-wrap:wrap; }' +
+          '.vibe-nav .nav-link { color:#888; text-decoration:none; padding:4px 8px; border-radius:4px; transition:0.3s; font-size:13px; }' +
+          '.vibe-nav .nav-link:hover, .vibe-nav .nav-link.active { color:#FFDF73; background:rgba(255,223,115,0.1); }' +
+          '.vibe-nav-right-controls { display:flex; align-items:center; margin-left:auto; }' +
+          '.vibe-nav-auth { display:flex; align-items:center; gap:8px; flex-shrink:0; }' +
+          '.vibe-mobile-menu-btn { display:none; color:#00ff41; font-size:24px; cursor:pointer; margin-left:15px; padding:0 5px; user-select:none; }' +
+          '@media (max-width: 850px) { .vibe-mobile-menu-btn { display:block; } .vibe-nav { flex-wrap: wrap; padding: 10px 15px; } .vibe-nav-links { display:none; width:100%; flex-direction:column; background:rgba(10,10,12,0.98); margin-top:12px; padding:10px 0; border-top:1px solid #333; border-radius:6px; box-shadow: 0 10px 20px rgba(0,0,0,0.8); } .vibe-nav-links.show { display:flex; } .vibe-nav .nav-link { padding:14px 20px; font-size:16px; border-bottom:1px solid rgba(255,255,255,0.05); } .vibe-nav-user-info { flex-direction:column; align-items:flex-end; padding:6px; gap:6px; } }' +
+          '.vibe-nav-user-info { display:flex; align-items:center; gap:12px; background:#111; padding:4px 10px; border-radius:6px; border:1px dashed #333; }' +
+          '.vibe-nav-balance { color:#FFDF73; font-weight:bold; text-shadow:0 0 8px rgba(255,223,115,0.4); font-size:13px; }' +
+          '.vibe-nav-username { font-size:12px; color:#aaa; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }' +
+          '.vibe-nav-checkin-btn { background:transparent; border:1px dashed rgba(255,223,115,0.5); color:#88cc88; font-size:11px; padding:4px 10px; cursor:pointer; border-radius:2px; transition:0.2s; }' +
+          '.vibe-nav-checkin-btn:hover { border-color:#FFDF73; color:#FFDF73; box-shadow:0 0 10px rgba(255,223,115,0.3); }' +
+          '.vibe-nav-logout-btn { background:transparent; border:1px dashed #444; color:#666; font-size:11px; padding:4px 8px; cursor:pointer; border-radius:2px; transition:0.2s; }' +
+          '.vibe-nav-logout-btn:hover { border-color:#ff4500; color:#ff4500; }' +
+          '.vibe-nav-login-trigger { background:rgba(0,255,65,0.08); border:1px solid rgba(0,255,65,0.4); color:#00ff41; font-size:12px; padding:6px 14px; cursor:pointer; border-radius:2px; transition:0.25s; }' +
+          '.vibe-nav-login-trigger:hover { background:rgba(0,255,65,0.15); box-shadow:0 0 15px rgba(0,255,65,0.3); }' +
+          '.vibe-login-modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999999; display:none; justify-content:center; align-items:center; backdrop-filter:blur(4px); }' +
+          '.vibe-login-modal-overlay.show { display:flex; }' +
+          '.vibe-login-modal-box { background:rgba(2,5,8,0.98); border:1px solid rgba(0,255,65,0.3); border-radius:6px; padding:36px 32px; width:90%; max-width:380px; box-shadow:0 0 50px rgba(0,255,65,0.12); }' +
+          '.vibe-login-modal-header { text-align:center; margin-bottom:28px; }' +
+          '.vibe-login-modal-title { font-family:monospace; font-size:20px; color:#00ff41; text-shadow:0 0 15px rgba(0,255,65,0.6); margin-bottom:8px; }' +
+          '.vibe-login-modal-subtitle { font-family:monospace; font-size:11px; color:#445; letter-spacing:2px; }' +
+          '.vibe-login-modal-body { display:flex; flex-direction:column; gap:12px; }' +
+          '.vibe-login-option { display:flex; align-items:center; gap:14px; background:rgba(10,15,10,0.9); border:1px solid #222; border-radius:4px; padding:14px 18px; cursor:pointer; transition:0.25s; font-family:monospace; font-size:14px; color:#ccc; width:100%; text-align:left; }' +
+          '.vibe-login-option:hover { border-color:rgba(0,255,65,0.5); background:rgba(0,255,65,0.05); color:#fff; }' +
+          '.vibe-login-icon { width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:bold; flex-shrink:0; }' +
+          '.vibe-login-modal-footer { margin-top:20px; text-align:center; font-family:monospace; font-size:10px; color:#555; }';
+        document.head.appendChild(style);
+      }
+
+      function restoreAuthFromStorage() { var user = getUser(); if (user) { updateNavAuthUI(user); } }
+
+      function updateNavAuthUI(user) {
+        user = user || getUser();
+        var userInfo = document.getElementById('vibe-nav-user-info');
+        var loginBtns = document.getElementById('vibe-nav-login-btns');
+        var usernameEl = document.getElementById('vibe-nav-username');
+        var balanceEl = document.getElementById('vibe-nav-balance');
+        var checkinBtn = document.getElementById('vibe-nav-checkin-btn');
+        
+        if (user && userInfo) {
+          userInfo.style.display = 'flex'; if (loginBtns) loginBtns.style.display = 'none';
+          if (usernameEl) usernameEl.textContent = user.name || '用戶';
+          if (balanceEl) balanceEl.textContent = '💰 ' + (user.vibeBalance || 0) + ' VIBE';
+          if (checkinBtn) {
+            var state = getCheckinState(); var today = new Date().toDateString();
+            if (state.date === today) { checkinBtn.textContent = '✔ x' + state.streak + '連'; checkinBtn.style.color = '#FFDF73'; }
+            else { checkinBtn.textContent = '✦ 簽到'; checkinBtn.style.color = '#88cc88'; }
+          }
+        } else if (userInfo) {
+          userInfo.style.display = 'none'; if (loginBtns) loginBtns.style.display = 'flex';
+        }
+      }
+
+      function openLoginModal() {
+        var body = document.getElementById('vibe-login-modal-body');
+        if (body) {
+          body.innerHTML =
+            '<button id="vibe-btn-google" class="vibe-login-option google"><span class="vibe-login-icon" style="background:#fff;color:#4285F4;">G</span><span>Sign in with Google</span></button>' +
+            '<button id="vibe-btn-twitter" class="vibe-login-option twitter"><span class="vibe-login-icon" style="background:#000;color:#fff;">𝕏</span><span>Sign in with X</span></button>';
+          
+          document.getElementById('vibe-btn-google').addEventListener('click', function() {
+            closeLoginModal(); if(window.vibeFirebaseLogin) window.vibeFirebaseLogin('google');
+          });
+          document.getElementById('vibe-btn-twitter').addEventListener('click', function() {
+            closeLoginModal(); if(window.vibeFirebaseLogin) window.vibeFirebaseLogin('twitter');
+          });
+        }
+        var modal = document.getElementById('vibe-login-modal'); if (modal) modal.classList.add('show');
+      }
+
+      function closeLoginModal(e) {
+        if (!e || (e.target && e.target === document.getElementById('vibe-login-modal'))) {
+          var modal = document.getElementById('vibe-login-modal'); if (modal) modal.classList.remove('show');
+        }
+      }
+
+      function syncFirebaseUser(firebaseUser) {
+        if (firebaseUser) {
+            var localUser = getUser() || {};
+            localUser.name = firebaseUser.name || firebaseUser.displayName || '未命名用戶';
+            localUser.email = firebaseUser.email; setUser(localUser); updateNavAuthUI(localUser);
+        } else { clearUser(); updateNavAuthUI(null); }
+      }
+
+      function logout() { 
+        if(window.vibeFirebaseLogout) { window.vibeFirebaseLogout(); } else { clearUser(); updateNavAuthUI(null); }
+      }
+
+      return { init: init, getUser: getUser, getVibeBalance: getVibeBalance, updateVibeBalance: updateVibeBalance, openLoginModal: openLoginModal, closeLoginModal: closeLoginModal, logout: logout, checkin: doCheckin, syncFirebaseUser: syncFirebaseUser };
+    })();
+
+    VibeRouter.init('legacy_bazi');
     </script>
 </body>
 </html>
