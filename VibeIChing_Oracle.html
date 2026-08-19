@@ -4,23 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Vibe 8.1 | ASI Oracle Matrix (Geodesic Sync)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
+    
+    <!-- 新增這行引入共享導航樣式 -->
+    <link rel="stylesheet" href="css/vibe-shared.css">
+
+
+    
     <style>
         /* 基础样式保持不变 */
-        body { 
-            font-family: 'Noto Serif TC', serif; background-color: #000; color: #00ff41;
-            display: flex; flex-direction: column; min-height: 100vh; margin: 0; padding: 30px 15px; 
-            box-sizing: border-box; overflow-x: hidden; overflow-y: auto;   
-        }
+body { 
+    /* 保留你原本的設定，只需確認 padding-top 是 85px 左右 */
+    padding: 85px 15px 30px 15px; 
+}
         #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; transform: translateZ(0); }
         
-        /* 右上角语言切换按钮 */
+        /* 语言切换按钮 (移至占卜區右上角) */
         #lang-toggle {
             position: absolute; top: 15px; right: 15px; background: rgba(0, 40, 0, 0.8);
             border: 1px solid #00ff41; color: #00ff41; padding: 6px 12px; font-family: monospace;
             font-size: 12px; font-weight: bold; cursor: pointer; z-index: 100;
             border-radius: 3px; transition: all 0.3s; box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
-        }
+        }    
         #lang-toggle:hover { background: #00ff41; color: #000; box-shadow: 0 0 15px #00ff41; }
 
         .container { 
@@ -112,8 +117,6 @@
     </style>
 </head>
 <body>
-    <button id="lang-toggle" onclick="switchLanguage()">🌐 EN</button>
-    
     <canvas id="matrix"></canvas>
 
     <div id="disclaimer-modal" class="modal-overlay">
@@ -147,6 +150,9 @@
     </div>
 
     <div class="container" id="sys-container">
+        <!-- 將翻譯按鈕移入占卜容器中 -->
+        <button id="lang-toggle" onclick="switchLanguage()">🌐 EN</button>
+        
         <h2>The Vibe</h2>
         <div class="subtitle" id="ui-subtitle">[ 量子糾纏與 5D 態勢解析引擎 ]</div>
 
@@ -899,5 +905,317 @@
             }, 1200);
         }
     </script>
+    
+    <!-- 新增 Router 導航代碼 -->
+    <script src="js/vibe-router.js"></script>
+    <script>VibeRouter.init('oracle');</script>
+    
+<!-- ========================================== -->
+    <!-- ⚡ THE VIBE ROUTER (直接內嵌版) ⚡ -->
+    <!-- ========================================== -->
+    <script>
+    var VibeRouter = (function() {
+      'use strict';
+
+      var pages = {
+        index:    { title: 'THE VIBE · 天球首頁',  file: 'index.html' },
+        oracle:   { title: '占卜預言機 · Oracle',   file: 'VibeIChing_Oracle.html' }, /* 這裡指回它自己 */
+        bazi:     { title: '八字編譯器 · BaZi',     file: 'bazi.html' },
+        iching:   { title: '易經詳析 · I-Ching',    file: 'iching-detail.html' },
+        ancient:  { title: '賽博古文庫 · Text',      file: 'ancient-text.html' },
+        akashic:  { title: '阿卡西記錄 · Akashic',  file: 'akashic.html' }
+      };
+
+      var currentPage = null;
+
+      function getUser() {
+        try { return JSON.parse(localStorage.getItem('vibe_user') || 'null'); } catch(e) { return null; }
+      }
+      
+      function setUser(u) {
+        if (u && typeof u.vibeBalance === 'undefined') { u.vibeBalance = 2500; }
+        localStorage.setItem('vibe_user', JSON.stringify(u));
+      }
+      
+      function clearUser() { localStorage.removeItem('vibe_user'); }
+
+      function getVibeBalance() {
+        var u = getUser();
+        return u ? (u.vibeBalance || 0) : 0;
+      }
+
+      function updateVibeBalance(delta) {
+        var u = getUser();
+        if (!u) return false;
+        u.vibeBalance = (u.vibeBalance || 0) + delta;
+        setUser(u);
+        updateNavAuthUI(u);
+        return true;
+      }
+
+      function getCheckinState() {
+        return {
+          date: localStorage.getItem('vibe-checkin-date') || '',
+          streak: parseInt(localStorage.getItem('vibe-checkin-streak') || '0')
+        };
+      }
+      
+      function doCheckin() {
+        var user = getUser();
+        if (!user) { openLoginModal(); return; }
+        var today = new Date().toDateString();
+        var state = getCheckinState();
+        if (state.date === today) { return; }
+        var yesterday = new Date(Date.now() - 86400000).toDateString();
+        var streak = (state.date === yesterday) ? state.streak + 1 : 1;
+        
+        localStorage.setItem('vibe-checkin-date', today);
+        localStorage.setItem('vibe-checkin-streak', streak.toString());
+        
+        updateVibeBalance(50);
+        updateNavAuthUI();
+        var btn = document.getElementById('vibe-nav-checkin-btn');
+        if (btn) { btn.textContent = '✔ x' + streak + '連 (+50)'; btn.style.color = '#FFDF73'; }
+      }
+
+      function initGoogleAnalytics() {
+        var gaId = 'G-RJECC1CREP';
+        if (document.getElementById('vibe-ga-script')) return;
+        var script = document.createElement('script');
+        script.id = 'vibe-ga-script';
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+        document.head.appendChild(script);
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', gaId);
+      }
+
+      function loadFirebaseAuth() {
+        // 注意：因為在同一個倉庫，相對路徑 'js/vibe-auth.js' 依然有效
+        if (document.getElementById('vibe-firebase-auth')) return;
+        var s = document.createElement('script');
+        s.id = 'vibe-firebase-auth';
+        s.type = 'module';
+        s.src = 'js/vibe-auth.js';
+        document.head.appendChild(s);
+      }
+
+      function init(pageId) {
+        currentPage = pageId;
+        injectStyles();
+        renderNav();
+        loadFirebaseAuth();
+        initGoogleAnalytics();
+        setTimeout(restoreAuthFromStorage, 100);
+      }
+
+      function renderNav() {
+        var existingNav = document.getElementById('vibe-global-nav');
+        if (existingNav) existingNav.remove();
+        var existingModal = document.getElementById('vibe-login-modal');
+        if (existingModal) existingModal.remove();
+
+        var navLinks = '';
+        var navItems = [
+          { id: 'index',   label: '天球',    icon: '◉' },
+          { id: 'oracle',  label: '占卜',    icon: '◎' },
+          { id: 'bazi',    label: '八字',    icon: '☰' },
+          { id: 'iching',  label: '易經',    icon: '☯' },
+          { id: 'ancient', label: '古文庫',  icon: '字' },
+          { id: 'akashic', label: '阿卡西',  icon: '✦' }
+        ];
+
+        for (var i = 0; i < navItems.length; i++) {
+          var item = navItems[i];
+          var isActive = item.id === currentPage ? ' active' : '';
+          navLinks += '<a href="' + pages[item.id].file + '" class="nav-link' + isActive + '" title="' + pages[item.id].title + '">' + item.icon + ' ' + item.label + '</a>';
+        }
+
+        var authPanel = '<div class="vibe-nav-auth" id="vibe-nav-auth">' +
+          '<div id="vibe-nav-user-info" style="display:none;" class="vibe-nav-user-info">' +
+            '<span id="vibe-nav-balance" class="vibe-nav-balance" title="$VIBE 積分">💰 0</span>' +
+            '<span id="vibe-nav-username" class="vibe-nav-username"></span>' +
+            '<button id="vibe-nav-checkin-btn" class="vibe-nav-checkin-btn" onclick="VibeRouter.checkin()">✦ 簽到</button>' +
+            '<button class="vibe-nav-logout-btn" onclick="VibeRouter.logout()">登出</button>' +
+          '</div>' +
+          '<div id="vibe-nav-login-btns" class="vibe-nav-login-btns">' +
+            '<button class="vibe-nav-login-trigger" onclick="VibeRouter.openLoginModal()">⚡ 登入</button>' +
+          '</div>' +
+        '</div>';
+
+        var navHTML = '<nav id="vibe-global-nav" class="vibe-nav">' +
+          '<a href="index.html" class="vibe-nav-brand">' +
+            '<span class="vibe-nav-brand-icon">⚡</span>' +
+            '<span>THE VIBE</span>' +
+          '</a>' +
+          '<div id="vibe-nav-links" class="vibe-nav-links">' + navLinks + '</div>' +
+          '<div class="vibe-nav-right-controls">' +
+            authPanel +
+            '<div class="vibe-mobile-menu-btn" onclick="document.getElementById(\'vibe-nav-links\').classList.toggle(\'show\')">☰</div>' +
+          '</div>' +
+        '</nav>';
+
+        var modalHTML = '<div id="vibe-login-modal" class="vibe-login-modal-overlay" onclick="VibeRouter.closeLoginModal(event)">' +
+          '<div class="vibe-login-modal-box">' +
+            '<div class="vibe-login-modal-header">' +
+              '<div class="vibe-login-modal-title">⚡ THE VIBE · 接入認證</div>' +
+              '<div class="vibe-login-modal-subtitle">選擇您的真實神經鏈接節點</div>' +
+            '</div>' +
+            '<div class="vibe-login-modal-body" id="vibe-login-modal-body"></div>' +
+            '<div class="vibe-login-modal-footer">新節點接入將自動空投 2500 $VIBE 積分</div>' +
+          '</div>' +
+        '</div>';
+
+        document.body.insertAdjacentHTML('afterbegin', navHTML + modalHTML);
+      }
+
+      function injectStyles() {
+        if (document.getElementById('vibe-router-styles')) return;
+        var style = document.createElement('style');
+        style.id = 'vibe-router-styles';
+        style.textContent = '' +
+          '.vibe-nav { position:fixed; top:0; left:0; width:100%; z-index:999999; display:flex; align-items:center; padding:12px 24px; background:rgba(5,5,5,0.95); backdrop-filter:blur(10px); border-bottom:1px solid #222; font-family:monospace; box-sizing:border-box; }' +
+          '.vibe-nav-brand { display:flex; align-items:center; gap:8px; text-decoration:none; color:#00ff41; font-weight:bold; font-size:16px; letter-spacing:1px; margin-right:20px; }' +
+          '.vibe-nav-links { display:flex; gap:8px; flex-wrap:wrap; }' +
+          '.vibe-nav .nav-link { color:#888; text-decoration:none; padding:4px 8px; border-radius:4px; transition:0.3s; font-size:13px; }' +
+          '.vibe-nav .nav-link:hover, .vibe-nav .nav-link.active { color:#FFDF73; background:rgba(255,223,115,0.1); }' +
+          '.vibe-nav-right-controls { display:flex; align-items:center; margin-left:auto; }' +
+          '.vibe-nav-auth { display:flex; align-items:center; gap:8px; flex-shrink:0; }' +
+          '.vibe-mobile-menu-btn { display:none; color:#00ff41; font-size:24px; cursor:pointer; margin-left:15px; padding:0 5px; user-select:none; }' +
+          '@media (max-width: 850px) {' +
+            '.vibe-mobile-menu-btn { display:block; }' +
+            '.vibe-nav { flex-wrap: wrap; padding: 10px 15px; }' +
+            '.vibe-nav-links { display:none; width:100%; flex-direction:column; background:rgba(10,10,12,0.98); margin-top:12px; padding:10px 0; border-top:1px solid #333; border-radius:6px; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }' +
+            '.vibe-nav-links.show { display:flex; }' +
+            '.vibe-nav .nav-link { padding:14px 20px; font-size:16px; border-bottom:1px solid rgba(255,255,255,0.05); }' +
+            '.vibe-nav-user-info { flex-direction:column; align-items:flex-end; padding:6px; gap:6px; }' +
+          '}' +
+          '.vibe-nav-user-info { display:flex; align-items:center; gap:12px; background:#111; padding:4px 10px; border-radius:6px; border:1px dashed #333; }' +
+          '.vibe-nav-balance { color:#FFDF73; font-weight:bold; text-shadow:0 0 8px rgba(255,223,115,0.4); font-size:13px; }' +
+          '.vibe-nav-username { font-size:12px; color:#aaa; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }' +
+          '.vibe-nav-checkin-btn { background:transparent; border:1px dashed rgba(255,223,115,0.5); color:#88cc88; font-size:11px; padding:4px 10px; cursor:pointer; border-radius:2px; transition:0.2s; }' +
+          '.vibe-nav-checkin-btn:hover { border-color:#FFDF73; color:#FFDF73; box-shadow:0 0 10px rgba(255,223,115,0.3); }' +
+          '.vibe-nav-logout-btn { background:transparent; border:1px dashed #444; color:#666; font-size:11px; padding:4px 8px; cursor:pointer; border-radius:2px; transition:0.2s; }' +
+          '.vibe-nav-logout-btn:hover { border-color:#ff4500; color:#ff4500; }' +
+          '.vibe-nav-login-trigger { background:rgba(0,255,65,0.08); border:1px solid rgba(0,255,65,0.4); color:#00ff41; font-size:12px; padding:6px 14px; cursor:pointer; border-radius:2px; transition:0.25s; }' +
+          '.vibe-nav-login-trigger:hover { background:rgba(0,255,65,0.15); box-shadow:0 0 15px rgba(0,255,65,0.3); }' +
+          '.vibe-login-modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999999; display:none; justify-content:center; align-items:center; backdrop-filter:blur(4px); }' +
+          '.vibe-login-modal-overlay.show { display:flex; }' +
+          '.vibe-login-modal-box { background:rgba(2,5,8,0.98); border:1px solid rgba(0,255,65,0.3); border-radius:6px; padding:36px 32px; width:90%; max-width:380px; box-shadow:0 0 50px rgba(0,255,65,0.12); }' +
+          '.vibe-login-modal-header { text-align:center; margin-bottom:28px; }' +
+          '.vibe-login-modal-title { font-family:monospace; font-size:20px; color:#00ff41; text-shadow:0 0 15px rgba(0,255,65,0.6); margin-bottom:8px; }' +
+          '.vibe-login-modal-subtitle { font-family:monospace; font-size:11px; color:#445; letter-spacing:2px; }' +
+          '.vibe-login-modal-body { display:flex; flex-direction:column; gap:12px; }' +
+          '.vibe-login-option { display:flex; align-items:center; gap:14px; background:rgba(10,15,10,0.9); border:1px solid #222; border-radius:4px; padding:14px 18px; cursor:pointer; transition:0.25s; font-family:monospace; font-size:14px; color:#ccc; width:100%; text-align:left; }' +
+          '.vibe-login-option:hover { border-color:rgba(0,255,65,0.5); background:rgba(0,255,65,0.05); color:#fff; }' +
+          '.vibe-login-icon { width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:bold; flex-shrink:0; }' +
+          '.vibe-login-modal-footer { margin-top:20px; text-align:center; font-family:monospace; font-size:10px; color:#555; }';
+        document.head.appendChild(style);
+      }
+
+      function restoreAuthFromStorage() {
+        var user = getUser();
+        if (user) { updateNavAuthUI(user); }
+      }
+
+      function updateNavAuthUI(user) {
+        user = user || getUser();
+        var userInfo = document.getElementById('vibe-nav-user-info');
+        var loginBtns = document.getElementById('vibe-nav-login-btns');
+        var usernameEl = document.getElementById('vibe-nav-username');
+        var balanceEl = document.getElementById('vibe-nav-balance');
+        var checkinBtn = document.getElementById('vibe-nav-checkin-btn');
+        
+        if (user && userInfo) {
+          userInfo.style.display = 'flex';
+          if (loginBtns) loginBtns.style.display = 'none';
+          if (usernameEl) usernameEl.textContent = user.name || '用戶';
+          if (balanceEl) balanceEl.textContent = '💰 ' + (user.vibeBalance || 0) + ' VIBE';
+          
+          if (checkinBtn) {
+            var state = getCheckinState();
+            var today = new Date().toDateString();
+            if (state.date === today) {
+              checkinBtn.textContent = '✔ x' + state.streak + '連';
+              checkinBtn.style.color = '#FFDF73';
+            } else {
+              checkinBtn.textContent = '✦ 簽到';
+              checkinBtn.style.color = '#88cc88';
+            }
+          }
+        } else if (userInfo) {
+          userInfo.style.display = 'none';
+          if (loginBtns) loginBtns.style.display = 'flex';
+        }
+      }
+
+      function openLoginModal() {
+        var body = document.getElementById('vibe-login-modal-body');
+        if (body) {
+          body.innerHTML =
+            '<button id="vibe-btn-google" class="vibe-login-option google">' +
+              '<span class="vibe-login-icon" style="background:#fff;color:#4285F4;">G</span><span>Sign in with Google</span></button>' +
+            '<button id="vibe-btn-twitter" class="vibe-login-option twitter">' +
+              '<span class="vibe-login-icon" style="background:#000;color:#fff;">𝕏</span><span>Sign in with X</span></button>';
+          
+          document.getElementById('vibe-btn-google').addEventListener('click', function() {
+            closeLoginModal();
+            if(window.vibeFirebaseLogin) window.vibeFirebaseLogin('google');
+          });
+
+          document.getElementById('vibe-btn-twitter').addEventListener('click', function() {
+            closeLoginModal();
+            if(window.vibeFirebaseLogin) window.vibeFirebaseLogin('twitter');
+          });
+        }
+        var modal = document.getElementById('vibe-login-modal');
+        if (modal) modal.classList.add('show');
+      }
+
+      function closeLoginModal(e) {
+        if (!e || (e.target && e.target === document.getElementById('vibe-login-modal'))) {
+          var modal = document.getElementById('vibe-login-modal');
+          if (modal) modal.classList.remove('show');
+        }
+      }
+
+      function syncFirebaseUser(firebaseUser) {
+        if (firebaseUser) {
+            var localUser = getUser() || {};
+            localUser.name = firebaseUser.name || firebaseUser.displayName || '未命名用戶';
+            localUser.email = firebaseUser.email;
+            setUser(localUser);
+            updateNavAuthUI(localUser);
+        } else {
+            clearUser();
+            updateNavAuthUI(null);
+        }
+      }
+
+      function logout() { 
+        if(window.vibeFirebaseLogout) { window.vibeFirebaseLogout(); } 
+        else { clearUser(); updateNavAuthUI(null); }
+      }
+
+      return {
+        init: init,
+        getUser: getUser,
+        getVibeBalance: getVibeBalance,
+        updateVibeBalance: updateVibeBalance,
+        openLoginModal: openLoginModal,
+        closeLoginModal: closeLoginModal,
+        logout: logout,
+        checkin: doCheckin,
+        syncFirebaseUser: syncFirebaseUser
+      };
+    })();
+
+    // 觸發初始化，並將此頁面高亮為 "oracle"
+    VibeRouter.init('oracle');
+    </script>
+
 </body>
 </html>
