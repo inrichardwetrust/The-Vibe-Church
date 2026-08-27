@@ -1,7 +1,10 @@
 # 🦅[ 創世檔案 ] 易經預言機 (Vibe I Ching) 一期實盤壓力測試報告
 
 > **“當三千年的東方底層源代碼，撞上全球最冷酷的量化賭場。”**
-> **測試地址 (Polymarket)：**[https://polymarket.com/@richard-vibeiching](https://polymarket.com/@richard-vibeiching)
+> **第一期測試地址（隨機標的）：** [https://polymarket.com/@richard-vibeiching](https://polymarket.com/@richard-vibeiching)
+> **第二期測試地址（BTC專項）：** 飽和求卦法測試，核心數據封存不公開。
+> **第三期測試地址（對抗賽事）：** https://polymarket.com/@vibeiching-phase3
+> **第四期測試地址（數字貨幣）：** 進行中
 
 這是一份足以載入「預測市場 (Predictive Markets)」與「玄學量化史冊」的創世紀報告。
 我們用真金白銀，在最極端的物理環境中，完成了對《易經》算法的科學壓力測試。
