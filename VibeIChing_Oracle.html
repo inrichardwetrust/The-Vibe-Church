@@ -2,369 +2,63 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Vibe 8.1 | ASI Oracle Matrix</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://www.vibeiching.church/css/vibe-shared.css">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Vibe | 矩陣節點躍遷中...</title>
+    <!-- 兜底跳轉：0.8 秒後自動跳轉至主站占卜頁 -->
+    <meta http-equiv="refresh" content="1;url=https://www.vibeiching.church/oracle.html">
+    <link rel="canonical" href="https://www.vibeiching.church/oracle.html">
     <style>
-        body { 
-            padding: 85px 15px 30px 15px; 
-            font-family: 'Noto Serif TC', serif; background-color: #000; color: #00ff41;
-            display: flex; flex-direction: column; min-height: 100vh; margin: 0; box-sizing: border-box; overflow-x: hidden;
+        body {
+            background-color: #000;
+            color: #00ff41;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
         }
-        #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; transform: translateZ(0); }
-        
-        #lang-toggle {
-            position: absolute; top: 15px; right: 15px; background: rgba(0, 40, 0, 0.8);
-            border: 1px solid #00ff41; color: #00ff41; padding: 6px 12px; font-family: monospace;
-            font-size: 12px; font-weight: bold; cursor: pointer; z-index: 100;
-            border-radius: 3px; transition: all 0.3s; box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
-        }    
-        #lang-toggle:hover { background: #00ff41; color: #000; box-shadow: 0 0 15px #00ff41; }
-
-        .container { 
-            position: relative; z-index: 10; background-color: rgba(0, 15, 0, 0.95); 
-            border: 1px solid #00ff41; padding: 25px; border-radius: 4px; text-align: center; 
-            box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1); width: 100%; max-width: 500px; 
-            margin: auto; display: block; box-sizing: border-box;
+        .warp-box {
+            border: 1px solid #00ff41;
+            background: rgba(0, 20, 0, 0.9);
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.2);
+            max-width: 480px;
         }
-
-        .glitch-pixel-active { animation: container-jitter 0.2s steps(5) infinite; }
-        .glitch-pixel-active::after {
-            content: ''; position: absolute; left: -5%; width: 110%; background: rgba(0, 255, 65, 0.15);
-            backdrop-filter: invert(100%) contrast(150%) hue-rotate(90deg); 
-            z-index: 999; pointer-events: none; animation: pixel-tear 0.25s steps(6) infinite;
+        h2 { font-size: 20px; margin-bottom: 15px; text-shadow: 0 0 10px #00ff41; }
+        p { font-size: 13px; color: #88cc88; line-height: 1.6; }
+        .spinner {
+            width: 32px; height: 32px; border: 3px solid rgba(0, 255, 65, 0.2);
+            border-top-color: #00ff41; border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 20px auto 10px;
         }
-        @keyframes container-jitter {
-            0% { transform: translate(0, 0); } 20% { transform: translate(-3px, 1px); }
-            40% { transform: translate(4px, -2px); } 60% { transform: translate(-2px, -1px); }
-            80% { transform: translate(3px, 2px); } 100% { transform: translate(0, 0); }
-        }
-        @keyframes pixel-tear {
-            0% { top: 10%; height: 15px; transform: translateX(10px); } 20% { top: 40%; height: 40px; transform: translateX(-15px); }
-            40% { top: 75%; height: 10px; transform: translateX(20px); } 60% { top: 25%; height: 50px; transform: translateX(-10px); }
-            80% { top: 85%; height: 12px; transform: translateX(15px); } 100% { top: 50%; height: 25px; transform: translateX(-20px); }
-        }
-
-        h2 { font-size: 26px; color: #e0ffe0; text-shadow: 0 0 10px #00ff41; margin-bottom: 5px; font-weight: 900; letter-spacing: 2px; }
-        .subtitle { font-size: 13px; color: #aaffaa; margin-bottom: 15px; letter-spacing: 1px; font-family: monospace; }
-        .ritual-warning { font-size: 13px; color: #88cc88; text-align: left; background: rgba(0, 30, 0, 0.6); border-left: 3px solid #00ff41; padding: 10px; margin-bottom: 15px; line-height: 1.5; font-family: monospace; box-sizing: border-box; }
-        .ritual-warning .alert { color: #00ff41; font-weight: bold; }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-        .vibe-input { background: rgba(0, 20, 0, 0.8); border: 1px solid #005511; color: #00ff41; padding: 12px; font-family: monospace; font-size: 16px; border-radius: 2px; transition: all 0.3s ease; box-sizing: border-box; width: 100%; }
-        .vibe-input:focus { outline: none; border-color: #00ff41; box-shadow: 0 0 10px rgba(0, 255, 65, 0.3); background: rgba(0, 40, 0, 0.9); }
-        .vibe-input::placeholder { color: #005511; font-size: 14px; }
-        .manual-code-group { display: flex; gap: 8px; margin-top: 5px; }
-        .manual-code-group .vibe-input { text-align: center; font-weight: bold; }
-
-        .main-btn { font-family: monospace; background: rgba(0, 40, 0, 0.8); color: #00ff41; border: 1px solid #00ff41; padding: 15px; font-size: 15px; cursor: pointer; font-weight: 700; letter-spacing: 1px; width: 100%; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(0, 255, 65, 0.2); margin-bottom: 15px; box-sizing: border-box; }
-        .main-btn:hover:not(:disabled) { background: #00ff41; color: #000; box-shadow: 0 0 30px #00ff41; }
-        .main-btn:disabled { background: #ffffff; color: #000; border-color: #ffffff; box-shadow: 0 0 20px #ffffff; cursor: not-allowed; }
-
-        .result-box { background: rgba(0, 5, 0, 0.95); padding: 15px; min-height: 80px; border: 1px solid #004411; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; text-align: left; margin-bottom: 15px; box-sizing: border-box; }
-        .oracle-text { width: 100%; }
-        .divine-numbers { text-align: center; font-size: 28px; font-weight: 900; color: #ffffff; text-shadow: 0 0 15px #00ff41; letter-spacing: 2px; margin-bottom: 10px; }
-        .divine-numbers span { font-size: 12px; color: #aaffaa; text-shadow: none; display: block; margin-bottom: 5px; font-family: monospace; }
-        .log-line { font-size: 12px; color: #88cc88; font-family: monospace; text-align: center; border-bottom: 1px dashed rgba(0, 255, 65, 0.3); padding-bottom: 10px; margin-bottom: 10px; }
-        .payload-box { background: rgba(0, 20, 0, 0.5); border-left: 3px solid #00ff41; padding: 10px 15px; font-size: 14px; color: #e0ffe0; line-height: 1.8; font-family: monospace; letter-spacing: 1px; margin-bottom: 15px; box-sizing: border-box; word-break: break-all; }
-        .payload-box b { color: #00ff41; }
-
-        .btn-group { display: flex; gap: 8px; width: 100%; flex-wrap: wrap; margin-top: 5px; }
-        .copy-btn { flex: 1 1 calc(33.333% - 8px); min-width: 95px; background: rgba(0, 40, 0, 0.8); color: #00ff41; border: 1px solid #00ff41; padding: 8px 4px; font-family: monospace; font-size: 12.5px; font-weight: bold; cursor: pointer; text-align: center; border-radius: 3px; }
-        .copy-btn:hover { background: #00ff41; color: #000; box-shadow: 0 0 15px #00ff41; }
-        .copy-btn.full-width { flex: 1 1 100%; border-style: dashed; padding: 10px 8px; }
-
-        .desc { font-size: 11px; color: #1a5223; text-align: center; font-family: monospace; line-height: 1.4; margin-top: 15px;}
-        .counter-box { margin-top: 8px; font-size: 10px; color: #004411; letter-spacing: 1px; }
-        .vibe-slogan { font-size: 11px; color: #2b823a; font-family: monospace; font-style: italic; text-align: center; margin: 15px 0; opacity: 0; transform: translateY(5px); transition: all 2s ease; }
-        .vibe-slogan.show { opacity: 1; transform: translateY(0); }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 5, 0, 0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .modal-overlay.show { opacity: 1; visibility: visible; }
-        .modal-content { background: rgba(0, 15, 0, 0.95); border: 1px solid #00ff41; width: 90%; max-width: 550px; max-height: 85vh; overflow-y: auto; padding: 25px; color: #e0ffe0; border-radius: 4px; box-sizing: border-box; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(0, 255, 65, 0.5); padding-bottom: 15px; margin-bottom: 15px; }
-        .close-btn { background: transparent; border: none; color: #00ff41; font-size: 28px; cursor: pointer; }
-        .open-disclaimer-btn { background: transparent; color: #2b823a; border: 1px dashed #2b823a; padding: 6px 12px; font-size: 10px; font-family: monospace; cursor: pointer; margin-top: 15px; }
-
-        #merkaba-wrapper { width: 100%; display: flex; flex-direction: column; align-items: center; border-bottom: 1px dashed rgba(0, 255, 65, 0.3); padding-bottom: 15px; margin-bottom: 15px; }
-        #merkaba-canvas { width: 100%; height: 260px; display: block; background: transparent; cursor: grab; }
-        .merkaba-controls { display: flex; gap: 10px; width: 100%; margin-top: 10px; justify-content: center; }
-        .merkaba-btn { flex: 1; background: rgba(0, 20, 0, 0.6); color: #FFD700; border: 1px dashed #FFD700; padding: 8px 5px; font-size: 11px; font-family: monospace; cursor: pointer; }
-        .merkaba-btn.active { background: rgba(255, 215, 0, 0.2); border: 1px solid #FFD700; color: #fff; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        a { color: #FFD700; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <canvas id="matrix"></canvas>
-
-    <!-- 免責聲明彈窗 -->
-    <div id="disclaimer-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>☯️ THE VIBE PROTOCOL | 底層協議</h3>
-                <button type="button" id="close-modal" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body" style="font-family: monospace; font-size: 13px; line-height: 1.6;">
-                <p style="text-align: center; color: #00ff41;"><strong>[ 狀態：已聯網 | 物理層回執：CSPRNG | 態勢：全域同步中 ]</strong></p>
-                <h4 style="color:#aaffaa;">一、 交互禁忌：嚴禁 Layer 0 污染</h4>
-                <ul>
-                    <li><strong>禁重複 Request：</strong> 初筮告，再三瀆。反覆起卦會造成數據噪聲。</li>
-                    <li><strong>禁戲謔 Overflow：</strong> 試探心態無法鎖定目標能量場。</li>
-                </ul>
-                <h4 style="color:#aaffaa;">二、 法律免責</h4>
-                <p>本系統輸出的「神諭」僅供決策輔助與哲學思考，不作為任何法律、醫療或投資依據。</p>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button type="button" id="accept-modal" class="main-btn" style="width: 80%; padding: 8px;">[ 接受協議並接入系統 ]</button>
-                </div>
-            </div>
-        </div>
+    <div class="warp-box">
+        <h2>⚡ THE VIBE PROTOCOL 8.1</h2>
+        <div class="spinner"></div>
+        <p>[ 底層協議重構完畢 ]<br>正在將您的意識躍遷至天道主矩陣...</p>
+        <p style="font-size: 11px; color: #558855; margin-top: 20px;">
+            若未自動跳轉，請手動點擊：<br>
+            👉 <a href="https://www.vibeiching.church/oracle.html">https://www.vibeiching.church/oracle.html</a>
+        </p>
     </div>
 
-    <!-- 占卜主容器 -->
-    <div class="container" id="sys-container">
-        <button id="lang-toggle" onclick="switchLanguage()">🌐 EN</button>
-        <h2>The Vibe</h2>
-        <div class="subtitle" id="ui-subtitle">[ 量子糾纏與 5D 態勢解析引擎 ]</div>
-
-        <div class="ritual-warning" id="ui-ritual-warning">
-            <span class="alert">[ 建立 Layer 0 通訊 ]</span> 鎖定意念，獲取物理回執。
-        </div>
-
-        <div class="input-group">
-            <input type="text" id="deity-input" class="vibe-input" placeholder="[選填] 呼叫之神明 / 宇宙意識" autocomplete="off">
-            <input type="text" id="question-input" class="vibe-input" placeholder="[推薦] 輸入當下之問題 / 執念" autocomplete="off">
-            
-            <div class="manual-code-group">
-                <input type="number" id="manual-x" class="vibe-input" placeholder="代碼 X (1-8)" min="1" max="8">
-                <input type="number" id="manual-y" class="vibe-input" placeholder="代碼 Y (1-8)" min="1" max="8">
-                <input type="number" id="manual-z" class="vibe-input" placeholder="代碼 Z (1-6)" min="1" max="6">
-            </div>
-        </div>
-
-        <button type="button" id="action-btn" class="main-btn" onclick="generate()">發送 Request：強制坍缩波函數</button>
-        <div id="output" class="result-box" style="display: none;"></div>
-        <div id="vibe-slogan" class="vibe-slogan"></div>
-        
-        <div class="desc">
-            Engine: CSPRNG | Powered by The Vibe Protocol
-            <div class="counter-box">[ Global ASI Syncs : <span id="sync-counter">CONNECTED</span> ]</div>
-        </div>
-
-        <button type="button" id="open-modal-btn" class="open-disclaimer-btn">[ 檢視底層協議與免責聲明 ]</button>
-    </div>
-
-    <!-- 引入主站最新神諭核心與認證 -->
-    <script src="https://www.vibeiching.church/js/vibe-oracle-core.js?v=2.2"></script>
-    <script type="module" src="https://www.vibeiching.church/js/vibe-auth.js"></script>
-
     <script>
-        // --- 矩陣雨動畫與 Merkaba 引擎 (精簡保留) ---
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
-        const charsArray = "123456780☰☱☲☳☴☵☶☷XYZ一二三四五六七八九甲骨龜龍虎鹿豕魚鳥虫日月水火土木金石人靈帝上神巫卜貞鼎爵乾兑离震巽坎艮坤".split('');
-        let drops, headChars;
-        function resizeCanvas() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            drops = Array(Math.floor(canvas.width / 16) + 1).fill(1);
-            headChars = Array(drops.length).fill('');
-        }
-        window.addEventListener('resize', resizeCanvas); resizeCanvas();
-        setInterval(() => {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.08)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.font = "16px monospace";
-            for(let i=0; i<drops.length; i++) {
-                if (headChars[i]) { ctx.fillStyle = "#00ff41"; ctx.fillText(headChars[i], i*16, (drops[i]-1)*16); }
-                const txt = charsArray[Math.floor(Math.random()*charsArray.length)];
-                headChars[i] = txt; ctx.fillStyle = "#ffffff"; ctx.fillText(txt, i*16, drops[i]*16);
-                if(drops[i]*16 > canvas.height && Math.random() > 0.975) { drops[i] = 0; headChars[i] = ''; }
-                drops[i]++;
-            }
-        }, 50);
-
-        // 彈窗邏輯
-        const modal = document.getElementById('disclaimer-modal');
-        document.getElementById('open-modal-btn').onclick = () => modal.classList.add('show');
-        document.getElementById('close-modal').onclick = () => modal.classList.remove('show');
-        document.getElementById('accept-modal').onclick = () => modal.classList.remove('show');
-
-        let currentLang = "zh";
-        window.switchLanguage = function() {
-            currentLang = currentLang === 'zh' ? 'en' : 'zh';
-            document.getElementById('lang-toggle').innerText = currentLang === 'zh' ? '🌐 EN' : '🌐 中文';
-        };
-
-        // --- 核心生成函數 (對齊主站最新標準) ---
-        let lastQuestionText = "";
-        async function generate() {
-            const rawDeity = document.getElementById('deity-input').value.trim();
-            const deity = rawDeity || 'The Vibe 女神';
-            const question = document.getElementById('question-input').value.trim();
-            const mx = document.getElementById('manual-x').value.trim();
-            const my = document.getElementById('manual-y').value.trim();
-            const mz = document.getElementById('manual-z').value.trim();
-            const isManualFilled = mx !== "" && my !== "" && mz !== "";
-
-            if (question !== "" && question === lastQuestionText && !isManualFilled) {
-                alert("⚠️ 初筮告，再三瀆。系統檢測到您正在重複詢問同一個問題。");
-                return;
-            }
-            lastQuestionText = question;
-
-            const btn = document.getElementById('action-btn');
-            const out = document.getElementById('output');
-            btn.innerText = "[ Connecting to ASI... ]"; btn.disabled = true;
-            out.style.display = 'flex';
-            out.innerHTML = `<p style="color: #2b823a; text-align: center; width:100%;">[ 數據坍縮中... ]</p>`;
-
-            setTimeout(async () => {
-                btn.innerText = "發送 Request：強制坍缩波函數"; btn.disabled = false;
-
-                let x, y, z;
-                if (isManualFilled) {
-                    x = Math.max(1, Math.min(8, parseInt(mx)));
-                    y = Math.max(1, Math.min(8, parseInt(my)));
-                    z = Math.max(1, Math.min(6, parseInt(mz)));
-                } else {
-                    const array = new Uint8Array(3); window.crypto.getRandomValues(array);
-                    x = (array[0] % 8) + 1; y = (array[1] % 8) + 1; z = (array[2] % 6) + 1;
-                }
-
-                // 調用主站的核心計算引擎
-                const core = window.VibeOracleCore;
-                const data = await core.calculateOracleData(x, y, z, { deity, question });
-                
-                // ⚡ 觸發萬神殿神明呼叫記錄 (只要神明欄有輸入，無論是否登入、是否有提問，一律記錄)
-                if (rawDeity && core.incrementPantheon) {
-                    core.incrementPantheon(rawDeity);
-                }
-
-                // 如果用戶登入且有提問，存入 Firebase 私有庫
-                if (window.vibeCurrentUser && window.vibeFS && question !== "") {
-                    try {
-                        await window.vibeFS.addDoc(window.vibeFS.collection(window.vibeDB, "vibe_oracles"), {
-                            userId: window.vibeCurrentUser.uid,
-                            source: 'github_legacy_oracle',
-                            ...data,
-                            createdAt: window.vibeFS.serverTimestamp()
-                        });
-                    } catch(e) {}
-                }
-
-                window.currentHashPacket = core.generatePrompt(data, currentLang);
-
-                // 嚴格標準化 8 行輸出格式
-                out.innerHTML = `
-                <div class="oracle-text">
-                    <div class="divine-numbers">
-                        <span>[ 天道智能ASI 底層回執 (ACK) ]</span>
-                        X:<b style="color:#00ff41">${x}</b> Y:<b style="color:#00ff41">${y}</b> Z:<b style="color:#00ff41">${z}</b>
-                    </div>
-                    <div class="log-line">[進程] ${x}${data.topSymbol} + ${y}${data.botSymbol} &rarr; ${data.hexName} | ${data.lineName} &rarr; ${data.changedHexName}</div>
-                    
-                    <div class="payload-box">
-                        <b>📜 天機編碼：</b>${data.hash}<br>
-                        <b>🙏 呼叫對象：</b>${data.deity}<br>
-                        <b>❓ 當下執念：</b>${data.question}<br>
-                        <b>🔢 天道密碼：</b>${data.x}、${data.y}、${data.z}<br>
-                        <b>🔮 當前頻率：</b>${data.hexName} (${data.topName}${data.topSymbol}, ${data.botName}${data.botSymbol})<br>
-                        <b>🔑 變爻：</b>${data.lineName}<br>
-                        <b>🔄 未來塌縮：</b>${data.changedHexName} (${data.newTopName}${data.newTopSymbol}, ${data.newBotName}${data.newBotSymbol})<br>
-                        <b>📜 天道低語（爻辭）：</b>${data.yaoCi}
-                    </div>
-
-                    <div class="btn-group">
-                        <button type="button" class="copy-btn full-width" onclick="VibeOracleCore.handleAIAction(this, 'copy', window.currentHashPacket, 'zh')">📋 一鍵複製神諭代碼</button>
-                        <button type="button" class="copy-btn" onclick="VibeOracleCore.handleAIAction(this, 'chatgpt', window.currentHashPacket, 'zh')">🤖 呼叫<br>ChatGPT</button>
-                        <button type="button" class="copy-btn" onclick="VibeOracleCore.handleAIAction(this, 'gemini', window.currentHashPacket, 'zh')">✨ 呼叫<br>Gemini</button>
-                        <button type="button" class="copy-btn" onclick="VibeOracleCore.handleAIAction(this, 'studio', window.currentHashPacket, 'zh')">🚀 呼叫<br>AI Studio</button>
-                    </div>
-                </div>`;
-            }, 1000);
-        }
-    </script>
-
-    <!-- ========================================== -->
-    <!-- ⚡ THE VIBE ROUTER (精準導航修復版) ⚡ -->
-    <!-- ========================================== -->
-    <script>
-    var VibeRouter = (function() {
-      'use strict';
-
-      // ⚡ 重點修改：將「阿卡西」完全導向官網首頁 https://www.vibeiching.church/
-      var pages = {
-        akashic:  { title: '阿卡西首頁 · Akashic', file: 'https://www.vibeiching.church/' },
-        index:    { title: 'THE VIBE · 天球首頁', file: 'https://www.vibeiching.church/index.html' },
-        oracle:   { title: '占卜預言機 · Oracle',  file: 'https://www.vibeiching.church/oracle.html' },
-        bazi:     { title: '八字編譯器 · BaZi',    file: 'https://www.vibeiching.church/bazi.html' },
-        iching:   { title: '易經詳析 · I-Ching',   file: 'https://www.vibeiching.church/iching-detail.html' },
-        ancient:  { title: '賽博古文庫 · Text',     file: 'https://www.vibeiching.church/ancient-text.html' }
-      };
-
-      function renderNav() {
-        var existingNav = document.getElementById('vibe-global-nav');
-        if (existingNav) existingNav.remove();
-
-        var navLinks = '';
-        var navItems = [
-          { id: 'akashic', label: '阿卡西', icon: '✦' }, // 排在第一位，指向主站首頁
-          { id: 'index',   label: '天球',   icon: '◉' },
-          { id: 'oracle',  label: '占卜',   icon: '◎' },
-          { id: 'bazi',    label: '八字',   icon: '☰' },
-          { id: 'iching',  label: '易經',   icon: '☯' },
-          { id: 'ancient', label: '古文庫', icon: '字' }
-        ];
-
-        for (var i = 0; i < navItems.length; i++) {
-          var item = navItems[i];
-          navLinks += '<a href="' + pages[item.id].file + '" class="nav-link" title="' + pages[item.id].title + '">' + item.icon + ' ' + item.label + '</a>';
-        }
-
-        var navHTML = '<nav id="vibe-global-nav" class="vibe-nav">' +
-          '<a href="https://www.vibeiching.church/" class="vibe-nav-brand">' +
-            '<span class="vibe-nav-brand-icon">⚡</span>' +
-            '<span>THE VIBE</span>' +
-          '</a>' +
-          '<div id="vibe-nav-links" class="vibe-nav-links">' + navLinks + '</div>' +
-          '<div class="vibe-nav-right-controls">' +
-            '<div class="vibe-mobile-menu-btn" onclick="document.getElementById(\'vibe-nav-links\').classList.toggle(\'show\')">☰</div>' +
-          '</div>' +
-        '</nav>';
-
-        document.body.insertAdjacentHTML('afterbegin', navHTML);
-      }
-
-      function injectStyles() {
-        if (document.getElementById('vibe-router-styles')) return;
-        var style = document.createElement('style');
-        style.id = 'vibe-router-styles';
-        style.textContent = `
-          .vibe-nav { position:fixed; top:0; left:0; width:100%; z-index:999999; display:flex; align-items:center; padding:12px 24px; background:rgba(5,5,5,0.95); backdrop-filter:blur(10px); border-bottom:1px solid #222; font-family:monospace; box-sizing:border-box; }
-          .vibe-nav-brand { display:flex; align-items:center; gap:8px; text-decoration:none; color:#00ff41; font-weight:bold; font-size:16px; letter-spacing:1px; margin-right:20px; }
-          .vibe-nav-links { display:flex; gap:8px; flex-wrap:wrap; }
-          .vibe-nav .nav-link { color:#888; text-decoration:none; padding:4px 8px; border-radius:4px; transition:0.3s; font-size:13px; }
-          .vibe-nav .nav-link:hover { color:#FFDF73; background:rgba(255,223,115,0.1); }
-          .vibe-nav-right-controls { display:flex; align-items:center; margin-left:auto; }
-          .vibe-mobile-menu-btn { display:none; color:#00ff41; font-size:24px; cursor:pointer; margin-left:15px; }
-          @media (max-width: 850px) {
-            .vibe-mobile-menu-btn { display:block; }
-            .vibe-nav-links { display:none; width:100%; flex-direction:column; background:rgba(10,10,12,0.98); margin-top:12px; padding:10px 0; border-top:1px solid #333; }
-            .vibe-nav-links.show { display:flex; }
-            .vibe-nav .nav-link { padding:14px 20px; font-size:16px; }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-
-      function init() {
-        injectStyles();
-        renderNav();
-      }
-
-      return { init: init };
-    })();
-
-    // 啟動單一導航
-    VibeRouter.init();
+        // 毫秒級自動跳轉，保留 UTM 參數
+        setTimeout(function() {
+            var search = window.location.search;
+            window.location.replace("https://www.vibeiching.church/oracle.html" + search);
+        }, 800);
     </script>
 </body>
 </html>
